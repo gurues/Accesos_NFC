@@ -44,7 +44,7 @@ volatile bool NFC_Present = false;    // Tarjeta NFC presente (variable interrup
 const int msApertura = 1500;         // 1,5 seg de apertura de la cerradura
 
 #define ARRAYSIZE 11 // Son 10 tarjetas y la posición 11 = "" para borrar.
-String idPermitido[ARRAYSIZE]={"16-31-183-195","15-50-233-67"}; // Tarjetas habilitadas para acceder "16-31-183-195","15-50-233-67"
+String idPermitido[ARRAYSIZE]={"108-18-101-3","16-31-183-195"}; // Tarjetas habilitadas para acceder "16-31-183-195","15-50-233-67"
 int ARRAYUSE= 1; // Puntero usado del array idPermitido[0,1,2,3,4,5,6,7,8,9,10], la pos 10 para borrar
 
 // Configuración WIFI
@@ -234,7 +234,7 @@ String PrintHex(const byte * uid, const long uidLength){
 }
 
 // Gestiona la interrupción de tarjeta NFC presente
-void IRQ_ISR()
+void ICACHE_RAM_ATTR IRQ_ISR()
 {
   NFC_Present = true;
 }
@@ -329,7 +329,7 @@ void loop () {
 
   if(NFC_Present == true) { 
     noInterrupts(); // desactivo interrupciones
-    digitalWrite ( led, LOW ); // Destectada tarjeta
+    digitalWrite ( led, LOW ); // Detectada tarjeta
     #ifdef DEBUG_ACCESO
       Serial.println("Detectada Tarjeta NFC ........");
     #endif

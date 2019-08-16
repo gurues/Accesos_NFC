@@ -11,6 +11,14 @@
  *  La alimentación del hardware del Control de Accesos se realiza a través de un puente de diodos y un regulador
  *  de voltaje para rectificar y regular los 12 VAC que llegan al portero automático. La instalación del hardware 
  *  del Control de Accesos se instalará en el interior del portero automático.
+ *
+ *
+ *  El control de acceso se realiza por medio de interrupciones y para solucionar cualquier problema con las 
+ *  mismas y WEMOS ESP8266 la función que se ejecuta cuando se produce la interrupción (ISR), debe estar en la 
+ *  memoria IRAM, en lugar de la memoria Flash. Si la (ISR) está en la Flash funciona la mayor parte del tiempo, 
+ *  pero no es confiable, ya que provoca bloqueos de la (ISR) de vez en cuando. Agregar ICACHE_RAM_ATTR en la 
+ *  función (ISR) soluciona este problema, coloca la (ISR) en la memoria IRAM y no se producen más bloqueos
+ *  aleatorios. 
  *  
  *  Hardware necesario:
  *  
