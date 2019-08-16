@@ -1,37 +1,9 @@
 /*                            *****************************************************************
  *  ***************************   CONTROL DE ACCESOS TARJETAS NFC / MQTT / NODERED / INFLUX   *********************************************************************
  *                            *****************************************************************
- *  Mediante el lector de tarjetas PN532 conectado a través de bus I2C con resistencias pull-up de 2 Kohm a una placa WEMOS D1 MINI se 
- *  realiza el control de accesos de una puerta. El sistema mediante MQTT se conecta a NODERED que gestiona los accesos de las tarjetas
- *  y la activación del relé de salida. NODERED también gestiona el almacenamiento de los acceso en la base de datos INFLUXDB. Tanto el
- *  servidor MQTT (Mosquitto), NODEREED como INFLUXDB están instalados en una RASPBERRYPI 3 dentro la misma red local que el  hardware 
- *  del Control de Accesos.
  *  
- *  La alimentación del hardware del Control de Accesos se realiza a través de un puente de diodos y un regulador de voltaje para 
- *  rectificar y regular los 12 VAC que llegan al portero automático. La instalación del hardware del Control de Accesos se instalará
- *  en el interior del portero automático.
- *  
- *  Hardware necesario:
- *  
- *  - 2 Resistencia de 2 Kohmios.
- *  - 1 Wemos D1 Mini.
- *  https://es.aliexpress.com/item/ESP8266-NodeMcu-Lua-WIFI-Junta-D1-versi-n-mini/32879989375.html?spm=a2g0s.9042311.0.0.274263c0maHTwS
- *  - 1 Lector tarjetas PN532 NFC V3.
- *  https://es.aliexpress.com/item/1-Unidades-PN532-NFC-RFID-m-dulo-inal-mbrico-V3-registrado-Bluetooth-lector-y-escritor-de/32863757340.html?spm=a2g0s.9042311.0.0.274263c0X0mGsc
- *  - 1 Puente de diodos.
- *  https://es.aliexpress.com/item/Free-shipping-20PCS-2w10-2A-1000V-diode-bridge-rectifier-2W10/32828648841.html?spm=a2g0s.9042311.0.0.12a563c07wHrsD
- *  - 1 Regulador de Voltaje 7805. 
- *  https://es.aliexpress.com/item/10pcs-LM7805-L7805-7805-Voltage-Regulator-IC-5V-1-5A-TO-220-make-in-china/32796581038.html?spm=a2g0s.9042311.0.0.12a563c07wHrsD
- *  - 1 Relé Shield para Wemos.
- *  https://es.aliexpress.com/item/1PCS-NEW-Relay-Shield-for-Arduino-WeMos-D1-Mini-ESP8266-Development-Board-WeMos-D1-Relay-Module/32737849680.html?spm=a2g0s.13010208.99999999.260.2d063c00OeQ5s9
- *  - 1 Placa Shield Wemos (Triple escudo).
- *  https://es.aliexpress.com/item/Triple-escudo-para-WeMos-D1-Mini-Dua-de-perforaci-n-para-Arduino-Compatible/32842137583.html?spm=a2g0s.9042311.0.0.274263c0maHTwS
- *  - 10 Llaveros NFC's.
- *  https://es.aliexpress.com/item/10-piezas-de-la-etiqueta-RFID-de-13-56-MHz-Mif1-S50-llaveros-etiqueta-NFC-RFID/32960150464.html?spm=a2g0s.13010208.99999999.260.78623c00iNnDJ2 
- *  
- *  Coste total estimado del proyecto: entre 12 y 15 euros.
- *  
- *  La actualización del software en el WEMOS DI MINI se puede realizar mediante OTA
+ *  Lea el archivo Readme_Accesos para entender el funcionamiento de este proyecto así cmo el material 
+ *  necesario para su implementación.
  * 
  *  Desarrollado por Oscar Ruiz Muela gurues@2019.
  * 
@@ -40,6 +12,7 @@
 
 
 #include <Arduino.h>
+
 #include <ESP8266WiFi.h>        // WIFI ESP8266
 #include <PubSubClient.h>       // MQTT
 #include <SPI.h>                // Bus SPI
@@ -49,10 +22,10 @@
 #include <WiFiUdp.h>            // Actualización por OTA
 
 // Pines SPI 
-#define SCK   D5
-#define MOSI  D7
-#define SS    D3
-#define MISO  D6
+#define SCK   D0
+#define MOSI  D6
+#define SS    D7
+#define MISO  D5
 #define RQ    D2
 
 //Objeto Lector tarjetas NFC
@@ -81,7 +54,7 @@ WiFiClient  clienteWifi;
 
 // Configuración MQTT
 PubSubClient clientMqtt(clienteWifi);
-const char* servidorMqtt = "192.168.1.100";
+const char* servidorMqtt = "192.168.1.99";
 const char* topicAcceso = "/casa/puerta/acceso";
 const char* topicAlta = "/casa/puerta/alta_NFC";
 const char* topicBaja = "/casa/puerta/baja_NFC";
@@ -122,13 +95,6 @@ void setup_wifi() {
 
 }
 
-// Apertura de la cerradura. Esta función será llamada cada vez que se haya concedido el acceso a una tarjeta.
-void abrirPuerta(){   
-    digitalWrite ( cerradura, HIGH );
-    delay(msApertura);
-    digitalWrite ( cerradura, LOW );
-}
-
 //Gestión de Mensajes Suscritos MQTT
 void callback(char* topic, byte* payload, unsigned int length) {
 
@@ -140,7 +106,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print(topic);
   Serial.print("]= ");
 #endif
-  for (unsigned int i = 0; i < length; i++) {
+  for (int i = 0; i < length; i++) {
     //#ifdef DEBUG_ACCESO
     Serial.println((char)payload[i]);
     //#endif
@@ -249,7 +215,12 @@ void reconnectMqtt() {
   }
 }
 
-
+// Apertura de la cerradura. Esta función será llamada cada vez que se haya concedido el acceso a una tarjeta.
+void abrirPuerta(){   
+    digitalWrite ( cerradura, HIGH );
+    delay(msApertura);
+    digitalWrite ( cerradura, LOW );
+}
 
 // Muestra el ID de la tarjeta de forma hexadecimal
 String PrintHex(const byte * uid, const long uidLength){
@@ -356,7 +327,7 @@ void loop () {
   }
   clientMqtt.loop();
 
-  if(NFC_Present == true) { 
+  if(NFC_Present = true) { 
     noInterrupts(); // desactivo interrupciones
     digitalWrite ( led, LOW ); // Destectada tarjeta
     #ifdef DEBUG_ACCESO
