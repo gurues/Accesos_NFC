@@ -63,6 +63,13 @@ const char* topicControl = "/casa/puerta/control_NFC";
 
 /////// DEFINICIÓN DE FUNCIONES   /////////////////////////////////////////////
 
+// Apertura de la cerradura. Esta función será llamada cada vez que se haya concedido el acceso a una tarjeta.
+void abrirPuerta(){   
+    digitalWrite ( cerradura, HIGH );
+    delay(msApertura);
+    digitalWrite ( cerradura, LOW );
+}
+
 // Conectando a WiFi network
 void setup_wifi() {
 
@@ -106,7 +113,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print(topic);
   Serial.print("]= ");
 #endif
-  for (int i = 0; i < length; i++) {
+  for (unsigned int i = 0; i < length; i++) {
     //#ifdef DEBUG_ACCESO
     Serial.println((char)payload[i]);
     //#endif
@@ -215,13 +222,6 @@ void reconnectMqtt() {
   }
 }
 
-// Apertura de la cerradura. Esta función será llamada cada vez que se haya concedido el acceso a una tarjeta.
-void abrirPuerta(){   
-    digitalWrite ( cerradura, HIGH );
-    delay(msApertura);
-    digitalWrite ( cerradura, LOW );
-}
-
 // Muestra el ID de la tarjeta de forma hexadecimal
 String PrintHex(const byte * uid, const long uidLength){
   String r = "";
@@ -327,7 +327,7 @@ void loop () {
   }
   clientMqtt.loop();
 
-  if(NFC_Present = true) { 
+  if(NFC_Present == true) { 
     noInterrupts(); // desactivo interrupciones
     digitalWrite ( led, LOW ); // Destectada tarjeta
     #ifdef DEBUG_ACCESO
