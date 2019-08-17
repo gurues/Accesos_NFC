@@ -14,7 +14,7 @@
 #include <Arduino.h>
 
 #include <ESP8266WiFi.h>        // WIFI ESP8266
-#include <PubSubClient.h>       // MQTT
+#include <AsyncMqttClient.h>    // MQTT Libreria asincrona basada en eventos
 #include <SPI.h>                // Bus SPI
 #include <Adafruit_PN532.h>     // LECTOR TRAJETAS NFC
 #include <ArduinoOTA.h>         // Actualización por OTA
@@ -50,11 +50,11 @@ int ARRAYUSE= 2; // Puntero usado del array idPermitido[0,1,2,3,4,5,6,7,8,9,10],
 // Configuración WIFI
 const char *ssid = "MOVISTAR_9E06";
 const char *password = "1CD0FD833D86C2705DD2";
-WiFiClient  clienteWifi;
 
 // Configuración MQTT
-PubSubClient clientMqtt(clienteWifi);
-const char* servidorMqtt = "192.168.1.99";
+#define MQTT_HOST IPAddress(192, 168, 1, 99)
+#define MQTT_PORT 1883
+AsyncMqttClient mqttClient;
 const char* topicAcceso = "/casa/puerta/acceso";
 const char* topicAlta = "/casa/puerta/alta_NFC";
 const char* topicBaja = "/casa/puerta/baja_NFC";
@@ -102,22 +102,79 @@ void setup_wifi() {
 
 }
 
-//Gestión de Mensajes Suscritos MQTT
-void callback(char* topic, byte* payload, unsigned int length) {
+// Funciones del Broker MQTT
 
-  String myString=(char*)payload;
-  Serial.println("Long= "+String(length));
+//Función para conectarse al Broker MQTT
+void connectToMqtt() {
+  
+#ifdef DEBUG_ACCESO
+  Serial.println("********** connectToMqtt ************");
+  Serial.println("Conectando CONTROL-ACCESOS al Broker MQTT...");
+#endif
+
+  mqttClient.connect();
+  
+}
+
+// Evento producido cuando se conecta al Broker
+void onMqttConnect(bool sessionPresent) {
 
 #ifdef DEBUG_ACCESO
+  Serial.println("********** onMqttConnect ************");
+  Serial.println("Connected to MQTT.");
+  Serial.print("Session present: ");
+  Serial.println(sessionPresent);
+#endif
+
+  uint16_t packetIdSub1 = mqttClient.subscribe(topicAcceso, 0);
+  uint16_t packetIdSub2 = mqttClient.subscribe(topicAlta, 2);
+  uint16_t packetIdSub3 = mqttClient.subscribe(topicBaja, 2);
+  uint16_t packetIdSub4 = mqttClient.subscribe(topicControl, 2);
+    
+#ifdef DEBUG_ACCESO
+  Serial.print("Suscrito a topic: Acesso, Alta, Baja, packetId's: ");
+  Serial.println(packetIdSub1);
+  Serial.println(packetIdSub2);
+  Serial.println(packetIdSub3);
+  Serial.println(packetIdSub4);
+#endif
+
+}
+
+//Evento cuando se desconecta del Broker
+void onMqttDisconnect(AsyncMqttClientDisconnectReason reason) {
+
+#ifdef DEBUG_ACCESO
+  Serial.println("********** onMqttDisconnect ************");
+  Serial.println("Control-Acesso Desconectado del MQTT.....");
+#endif
+
+  if (WiFi.isConnected()) {
+    connectToMqtt(); 
+  }
+  
+}
+
+//Gestión de Mensajes Suscritos MQTT ***************************************************************************************************
+void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t length, size_t index, size_t total) {
+
+String myString=(char*)payload;
+  
+
+#ifdef DEBUG_ACCESO
+  Serial.println("********** onMqttMessage ************");
   Serial.print("Message llegado [");
   Serial.print(topic);
   Serial.print("]= ");
-#endif
-  for (unsigned int i = 0; i < length; i++) {
-    //#ifdef DEBUG_ACCESO
-    Serial.println((char)payload[i]);
-    //#endif
+  for (size_t i = 0; i < length; i++) {
+    Serial.print((char)payload[i]);
   }
+  Serial.println("");
+  Serial.println("length = " + String(length));
+  Serial.print("  qos: ");  Serial.println(properties.qos);
+  Serial.print("  dup: ");  Serial.println(properties.dup);
+  Serial.print("  retain: ");  Serial.println(properties.retain);
+#endif
 
   // Si re recibe un topic de Control
   if ((String)topic==(String)topicControl){
@@ -191,34 +248,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
       }
     }
   }
-   
-}
 
-void reconnectMqtt() {
-  // Repetimos hasta conectar
-  while (!clientMqtt.connected()) {
-#ifdef DEBUG_ACCESO
-    Serial.println("[MQTT]Esperando conexión con MQTT...");
-#endif
-    // Intentamos conectar
-    if (clientMqtt.connect("MQTT_Control_Accesos")) {
-      clientMqtt.subscribe(topicAlta);
-      clientMqtt.subscribe(topicBaja);
-      clientMqtt.subscribe(topicControl);
-#ifdef DEBUG_ACCESO
-      Serial.println("[MQTT]Conectado");
-#endif
-    } 
-    else {
-#ifdef DEBUG_ACCESO
-      Serial.print("[MQTT]Fallo, rc=");
-      Serial.print(clientMqtt.state());
-      Serial.println(" se intentará o travez tras 5 segundos");
-#endif
-      // Esperamos 5 segundos
-      delay(5000);
-    }
-  }
 }
 
 // Muestra el ID de la tarjeta de forma hexadecimal
@@ -282,10 +312,18 @@ void setup() {
   Serial.println("LECTOR NFC OK");
 #endif
 
-  //Configuración WIFI y MQTT
+  //Configuración WIFI
   setup_wifi();
-  clientMqtt.setServer(servidorMqtt, 1883);
-  clientMqtt.setCallback(callback);
+
+  //Configuración MQTT
+  mqttClient.onConnect(onMqttConnect);
+  mqttClient.onDisconnect(onMqttDisconnect);
+  mqttClient.onMessage(onMqttMessage);
+  mqttClient.setServer(MQTT_HOST, MQTT_PORT);
+
+  //if (WiFi.isConnected()) {
+    connectToMqtt();
+  //}
 #ifdef DEBUG_ACCESO 
   Serial.println("Configurado [MQTT]");
 #endif
@@ -310,12 +348,6 @@ void loop () {
 
   ArduinoOTA.handle(); // Actualización código por OTA
   
-  // Comprobamos conexión con broker MQTT
-  if (!clientMqtt.connected()) {
-    reconnectMqtt();
-  }
-  clientMqtt.loop();
-
   //Variables de loop()
   String uid;
   uint8_t puerta;
@@ -361,18 +393,8 @@ void loop () {
         }
       #endif
       // MQTT se publica el acceso
-      char buf[15];
-      uid.toCharArray(buf, 15);
-      clientMqtt.publish(topicAcceso, buf);
+      mqttClient.publish(topicAcceso, 0, true, ((uid).c_str())); // Publico uid CARD leida
     }
-    /*
-    else{
-      uid = "0";
-      #ifdef DEBUG_ACCESO
-        Serial.println("No se ha encontrado ISO14443A card");
-      #endif 
-    } 
-    */
     digitalWrite ( led, HIGH ); // Fin presencia tarjeta 
     NFC_Present = false; // Reiniciovariable gestión interrupción
     interrupts(); // Activo interrupciones
