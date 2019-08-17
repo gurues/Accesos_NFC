@@ -41,11 +41,11 @@ Adafruit_PN532 nfc(SCK, MISO, MOSI, SS);
 
 // Definición de Variables
 volatile bool NFC_Present = false;    // Tarjeta NFC presente (variable interrupción)
-const int msApertura = 1500;         // 1,5 seg de apertura de la cerradura
+const int msApertura = 1000;         // 1,5 seg de apertura de la cerradura
 
 #define ARRAYSIZE 11 // Son 10 tarjetas y la posición 11 = "" para borrar.
-String idPermitido[ARRAYSIZE]={"108-18-101-3","16-31-183-195"}; // Tarjetas habilitadas para acceder "16-31-183-195","15-50-233-67"
-int ARRAYUSE= 1; // Puntero usado del array idPermitido[0,1,2,3,4,5,6,7,8,9,10], la pos 10 para borrar
+String idPermitido[ARRAYSIZE]={"108-18-101-3","16-31-183-195"}; // Tarjetas habilitadas para acceder
+int ARRAYUSE= 2; // Puntero usado del array idPermitido[0,1,2,3,4,5,6,7,8,9,10], la pos 10 para borrar
 
 // Configuración WIFI
 const char *ssid = "MOVISTAR_9E06";
@@ -79,7 +79,7 @@ void setup_wifi() {
     Serial.print("Conectado a ");
     Serial.println(ssid);
 #endif
-    IPAddress ip(192, 168, 1, 50);
+    IPAddress ip(192, 168, 1, 150);
     IPAddress gateway(192,168,1,1);
     IPAddress subnet (255,255,255,0);
     WiFi.mode(WIFI_STA);
@@ -118,7 +118,6 @@ void callback(char* topic, byte* payload, unsigned int length) {
     Serial.println((char)payload[i]);
     //#endif
   }
-
 
   // Si re recibe un topic de Control
   if ((String)topic==(String)topicControl){
@@ -202,7 +201,7 @@ void reconnectMqtt() {
     Serial.println("[MQTT]Esperando conexión con MQTT...");
 #endif
     // Intentamos conectar
-    if (clientMqtt.connect("Control_Accesos")) {
+    if (clientMqtt.connect("MQTT_Control_Accesos")) {
       clientMqtt.subscribe(topicAlta);
       clientMqtt.subscribe(topicBaja);
       clientMqtt.subscribe(topicControl);
@@ -292,13 +291,9 @@ void setup() {
 #endif
 
   //Actualización código por OTA
+  ArduinoOTA.setPort(8266);
   ArduinoOTA.setHostname("Control_Acceso");
-  ArduinoOTA.setPassword("2047");
-  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-#ifdef DEBUG_ACCESO
-  Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
-#endif
-  });
+  //ArduinoOTA.setPassword("2047");
   ArduinoOTA.begin();
 
   attachInterrupt(digitalPinToInterrupt(RQ), IRQ_ISR, FALLING);
@@ -313,12 +308,6 @@ void setup() {
 
 void loop () {
 
-  String uid;
-  uint8_t puerta;
-  uint8_t N_uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
-  uint8_t uidLength;                          // Length of the UID (4 (Mifare Classic) or 7 (Mifare Ultralight) 
-                                              // bytes depending on ISO14443A card type)
-                                                
   ArduinoOTA.handle(); // Actualización código por OTA
   
   // Comprobamos conexión con broker MQTT
@@ -327,6 +316,13 @@ void loop () {
   }
   clientMqtt.loop();
 
+  //Variables de loop()
+  String uid;
+  uint8_t puerta;
+  uint8_t N_uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
+  uint8_t uidLength;                          // Length of the UID (4 (Mifare Classic) or 7 (Mifare Ultralight) 
+                                              // bytes depending on ISO14443A card type)
+                                                
   if(NFC_Present == true) { 
     noInterrupts(); // desactivo interrupciones
     digitalWrite ( led, LOW ); // Detectada tarjeta
@@ -345,6 +341,7 @@ void loop () {
       // espera hasta que se quite la tarjeta
       while (nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, &N_uid[0], &uidLength)) {}
       uid = PrintHex(N_uid,uidLength);
+      //Comprueba si card UID tiene acceso
       bool noEncontrado = true;
       for(int i = 0; i < ARRAYUSE; i++){
         if(uid == idPermitido[i]){
@@ -353,25 +350,31 @@ void loop () {
           break;
         }
       }
-      if(noEncontrado){ // Tarjeta sin acceso
-        #ifdef DEBUG_ACCESO
+      #ifdef DEBUG_ACCESO
+        if(noEncontrado){ // Tarjeta sin acceso
           Serial.print("Acceso Denegado a ISO14443A card UID: ");
           Serial.println(uid);
-        #endif
-      }
+        }
+        else{
+          Serial.print("Acceso Concedido a ISO14443A card UID: ");
+          Serial.println(uid);
+        }
+      #endif
       // MQTT se publica el acceso
       char buf[15];
       uid.toCharArray(buf, 15);
       clientMqtt.publish(topicAcceso, buf);
     }
+    /*
     else{
       uid = "0";
       #ifdef DEBUG_ACCESO
         Serial.println("No se ha encontrado ISO14443A card");
       #endif 
     } 
+    */
     digitalWrite ( led, HIGH ); // Fin presencia tarjeta 
-    NFC_Present = false; // Activo variable gestión interrupción
+    NFC_Present = false; // Reiniciovariable gestión interrupción
     interrupts(); // Activo interrupciones
   }
   
