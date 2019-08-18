@@ -41,7 +41,8 @@ Adafruit_PN532 nfc(SCK, MISO, MOSI, SS);
 
 // Definición de Variables
 volatile bool NFC_Present = false;    // Tarjeta NFC presente (variable interrupción)
-const int msApertura = 1000;         // 1,5 seg de apertura de la cerradura
+unsigned long msApertura = 1000;      // 1,5 seg de apertura de la cerradura
+volatile bool Estado_Cerradura = false;        // Tarjeta NFC presente (variable estado )
 
 #define ARRAYSIZE 11 // Son 10 tarjetas y la posición 11 = "" para borrar.
 String idPermitido[ARRAYSIZE]={"108-18-101-3","16-31-183-195"}; // Tarjetas habilitadas para acceder
@@ -55,30 +56,36 @@ const char *password = "1CD0FD833D86C2705DD2";
 #define MQTT_HOST IPAddress(192, 168, 1, 99)
 #define MQTT_PORT 1883
 AsyncMqttClient mqttClient;
-const char* topicAcceso = "/casa/puerta/acceso";
-const char* topicAlta = "/casa/puerta/alta_NFC";
-const char* topicBaja = "/casa/puerta/baja_NFC";
-const char* topicControl = "/casa/puerta/control_NFC";
+const char* topicAcceso = "casa/puerta/acceso";
+const char* topicAlta = "casa/puerta/alta_NFC";
+const char* topicBaja = "casa/puerta/baja_NFC";
+const char* topicControl = "casa/puerta/control_NFC";
 
 
 /////// DEFINICIÓN DE FUNCIONES   /////////////////////////////////////////////
 
 // Apertura de la cerradura. Esta función será llamada cada vez que se haya concedido el acceso a una tarjeta.
 void abrirPuerta(){   
-    digitalWrite ( cerradura, HIGH );
+    digitalWrite (cerradura, HIGH);
     delay(msApertura);
-    digitalWrite ( cerradura, LOW );
+    /*
+    //espera msApertura
+    unsigned long inicio_Millis = millis() + msApertura;
+    unsigned long actual_Millis= millis();
+    while (actual_Millis < inicio_Millis){}
+    */
+    digitalWrite (cerradura, LOW);
 }
 
 // Conectando a WiFi network
 void setup_wifi() {
 
     delay(10);
-#ifdef DEBUG_ACCESO
+  #ifdef DEBUG_ACCESO
     Serial.println();
     Serial.print("Conectado a ");
     Serial.println(ssid);
-#endif
+  #endif
     IPAddress ip(192, 168, 1, 150);
     IPAddress gateway(192,168,1,1);
     IPAddress subnet (255,255,255,0);
@@ -92,13 +99,13 @@ void setup_wifi() {
       #endif
     }
     randomSeed(micros());
-#ifdef DEBUG_ACCESO
+  #ifdef DEBUG_ACCESO
     Serial.println("");
     Serial.println("WiFi conectado");
     Serial.print("IP address: ");
     Serial.println(WiFi.localIP());
     Serial.println("");
-#endif
+  #endif
 
 }
 
@@ -107,147 +114,144 @@ void setup_wifi() {
 //Función para conectarse al Broker MQTT
 void connectToMqtt() {
   
-#ifdef DEBUG_ACCESO
-  Serial.println("********** connectToMqtt ************");
-  Serial.println("Conectando CONTROL-ACCESOS al Broker MQTT...");
-#endif
+  #ifdef DEBUG_ACCESO
+    Serial.println("********** connectToMqtt ************");
+    Serial.println("Conectando CONTROL-ACCESOS al Broker MQTT...");
+  #endif
 
-  mqttClient.connect();
+    mqttClient.connect();
   
 }
 
 // Evento producido cuando se conecta al Broker
 void onMqttConnect(bool sessionPresent) {
 
-#ifdef DEBUG_ACCESO
-  Serial.println("********** onMqttConnect ************");
-  Serial.println("Connected to MQTT.");
-  Serial.print("Session present: ");
-  Serial.println(sessionPresent);
-#endif
+  #ifdef DEBUG_ACCESO
+    Serial.println("********** onMqttConnect ************");
+    Serial.println("Connected to MQTT.");
+    Serial.print("Session present: ");
+    Serial.println(sessionPresent);
+  #endif
 
-  uint16_t packetIdSub1 = mqttClient.subscribe(topicAcceso, 0);
-  uint16_t packetIdSub2 = mqttClient.subscribe(topicAlta, 2);
-  uint16_t packetIdSub3 = mqttClient.subscribe(topicBaja, 2);
-  uint16_t packetIdSub4 = mqttClient.subscribe(topicControl, 2);
-    
-#ifdef DEBUG_ACCESO
-  Serial.print("Suscrito a topic: Acesso, Alta, Baja, packetId's: ");
-  Serial.println(packetIdSub1);
-  Serial.println(packetIdSub2);
-  Serial.println(packetIdSub3);
-  Serial.println(packetIdSub4);
-#endif
+    mqttClient.subscribe(topicAcceso, 0);
+    mqttClient.subscribe(topicAlta, 2);
+    mqttClient.subscribe(topicBaja, 2);
+    mqttClient.subscribe(topicControl, 2);
+      
+  #ifdef DEBUG_ACCESO
+    Serial.print("Suscrito a topic's: Acesso, Alta, Baja y Control");
+  #endif
 
 }
 
 //Evento cuando se desconecta del Broker
 void onMqttDisconnect(AsyncMqttClientDisconnectReason reason) {
 
-#ifdef DEBUG_ACCESO
-  Serial.println("********** onMqttDisconnect ************");
-  Serial.println("Control-Acesso Desconectado del MQTT.....");
-#endif
+  #ifdef DEBUG_ACCESO
+    Serial.println("********** onMqttDisconnect ************");
+    Serial.println("Control-Acesso Desconectado del MQTT.....");
+  #endif
 
-  if (WiFi.isConnected()) {
-    connectToMqtt(); 
-  }
-  
+    if (WiFi.isConnected()) {
+      connectToMqtt(); 
+    }
+    
 }
 
 //Gestión de Mensajes Suscritos MQTT ***************************************************************************************************
 void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t length, size_t index, size_t total) {
 
-String myString=(char*)payload;
-  
-
-#ifdef DEBUG_ACCESO
-  Serial.println("********** onMqttMessage ************");
-  Serial.print("Message llegado [");
-  Serial.print(topic);
-  Serial.print("]= ");
-  for (size_t i = 0; i < length; i++) {
-    Serial.print((char)payload[i]);
-  }
-  Serial.println("");
-  Serial.println("length = " + String(length));
-  Serial.print("  qos: ");  Serial.println(properties.qos);
-  Serial.print("  dup: ");  Serial.println(properties.dup);
-  Serial.print("  retain: ");  Serial.println(properties.retain);
-#endif
-
-  // Si re recibe un topic de Control
-  if ((String)topic==(String)topicControl){
-    // Se reinicia Wemos
-    if ((char)payload[0] == 'R') {
-      ESP.restart();
-    } 
-    // Muestra uid de las tarjetas con acceso Puerto serie
-    if ((char)payload[0] == 'I') {
-      for (int X = 0; X < ARRAYSIZE; X++) {
-        Serial.println(idPermitido[X]);
-      }
-      Serial.print("ARRAYSIZE= ");
-      Serial.println(ARRAYSIZE);
-      Serial.print("ARRAYUSE= ");
-      Serial.println(ARRAYUSE);
+  String myString=(char*)payload;
+    
+  #ifdef DEBUG_ACCESO
+    Serial.println("********** onMqttMessage ************");
+    Serial.print("Message llegado [");
+    Serial.print(topic);
+    Serial.print("]= ");
+    for (size_t i = 0; i < length; i++) {
+      Serial.print((char)payload[i]);
     }
-    // Se abre la puerta
-    if ((char)payload[0] == '1') {
-      abrirPuerta();
-    } 
-  }
-  
-  // Si re recibe un topic de Alta tarjeta NFC
-  if ((String)topic==(String)topicAlta){
-     String alta_uid= myString.substring(0, length);
-     bool incluir = true;
-     //#ifdef DEBUG_ACCESO
-       Serial.print("Alta Tarjeta NFC UID: ");
-       Serial.println(alta_uid);
-     //#endif
-     if ((ARRAYSIZE-2)>ARRAYUSE){
-       for(int i = 0; i <= ARRAYUSE; i++){
-          Serial.println("idPermitido: " + idPermitido[i]);
-          Serial.println("Tamaño alta_uid: " + String(alta_uid.length()));
-          Serial.println("Tamaño idPermitido: " + String((idPermitido[i]).length()));
-          if(alta_uid == idPermitido[i]){
-             incluir = false;
-             break;
-          }
-       }
-       if (incluir){
-          ARRAYUSE++;
-          idPermitido[ARRAYUSE]=alta_uid;
-         // #ifdef DEBUG_ACCESO
-             Serial.print("Se ha dado de Alta Tarjeta NFC UID: ");
-             Serial.println(alta_uid);
-         // #endif
-       }
-     }
-  } 
+    Serial.println("");
+    Serial.println("length = " + String(length));
+    Serial.print("  qos: ");  Serial.println(properties.qos);
+    Serial.print("  dup: ");  Serial.println(properties.dup);
+    Serial.print("  retain: ");  Serial.println(properties.retain);
+  #endif
 
-  // Si se recibe un topic de Baja tarjeta NFC
-  if ((String)topic==(String)topicBaja){
-     String baja_uid= myString.substring(0, length);
-    //#ifdef DEBUG_ACCESO
-      Serial.print("Baja Tarjeta NFC UID: ");
-      Serial.println(baja_uid);
-    //#endif
-    for(int i = 0; i <= ARRAYUSE; i++){
-      if(baja_uid == idPermitido[i]){
-        for(int n = i; n < ARRAYUSE+1; n++){
-          idPermitido[n]=idPermitido[n+1];
+    // Si re recibe un topic de Control
+    if ((String)topic==(String)topicControl){
+      // Se reinicia Wemos
+      if ((char)payload[0] == 'R') {
+        ESP.restart();
+      } 
+      // Muestra uid de las tarjetas con acceso Puerto serie
+      if ((char)payload[0] == 'I') {
+        for (int X = 0; X < ARRAYSIZE; X++) {
+          Serial.println(idPermitido[X]);
         }
-        ARRAYUSE--;
         Serial.print("ARRAYSIZE= ");
         Serial.println(ARRAYSIZE);
         Serial.print("ARRAYUSE= ");
         Serial.println(ARRAYUSE);
-        break;
+      }
+      // Se abre la puerta
+      if ((char)payload[0] == '1') {
+        //abrirPuerta();
+        Estado_Cerradura = true;
+        Serial.println("Estado_Cerradura = true");
+      } 
+    }
+    
+    // Si re recibe un topic de Alta tarjeta NFC
+    if ((String)topic==(String)topicAlta){
+      String alta_uid = myString.substring(0, length);
+      bool incluir = true;
+      //#ifdef DEBUG_ACCESO
+        Serial.print("Alta Tarjeta NFC UID: ");
+        Serial.println(alta_uid);
+      //#endif
+      if ((ARRAYSIZE-2)>ARRAYUSE){
+        for(int i = 0; i <= ARRAYUSE; i++){
+            Serial.println("idPermitido: " + idPermitido[i]);
+            Serial.println("Tamaño alta_uid: " + String(alta_uid.length()));
+            Serial.println("Tamaño idPermitido: " + String((idPermitido[i]).length()));
+            if(alta_uid == idPermitido[i]){
+              incluir = false;
+              break;
+            }
+        }
+        if (incluir){
+            ARRAYUSE++;
+            idPermitido[ARRAYUSE-1]=alta_uid;
+          // #ifdef DEBUG_ACCESO
+              Serial.print("Se ha dado de Alta Tarjeta NFC UID: ");
+              Serial.println(alta_uid);
+          // #endif
+        }
+      }
+    } 
+
+    // Si se recibe un topic de Baja tarjeta NFC
+    if ((String)topic==(String)topicBaja){
+      String baja_uid= myString.substring(0, length);
+      //#ifdef DEBUG_ACCESO
+        Serial.print("Baja Tarjeta NFC UID: ");
+        Serial.println(baja_uid);
+      //#endif
+      for(int i = 0; i <= ARRAYUSE; i++){
+        if(baja_uid == idPermitido[i]){
+          for(int n = i; n < ARRAYUSE+1; n++){
+            idPermitido[n]=idPermitido[n+1];
+          }
+          ARRAYUSE--;
+          Serial.print("ARRAYSIZE= ");
+          Serial.println(ARRAYSIZE);
+          Serial.print("ARRAYUSE= ");
+          Serial.println(ARRAYUSE);
+          break;
+        }
       }
     }
-  }
 
 }
 
@@ -263,9 +267,10 @@ String PrintHex(const byte * uid, const long uidLength){
 }
 
 // Gestiona la interrupción de tarjeta NFC presente
-void ICACHE_RAM_ATTR IRQ_ISR()
-{
+void ICACHE_RAM_ATTR IRQ_ISR(){
+
   NFC_Present = true;
+
 }
 
 void Card_access(){
@@ -321,9 +326,9 @@ void setup() {
   mqttClient.onMessage(onMqttMessage);
   mqttClient.setServer(MQTT_HOST, MQTT_PORT);
 
-  //if (WiFi.isConnected()) {
+  if (WiFi.isConnected()) {
     connectToMqtt();
-  //}
+  }
 #ifdef DEBUG_ACCESO 
   Serial.println("Configurado [MQTT]");
 #endif
@@ -354,7 +359,13 @@ void loop () {
   uint8_t N_uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
   uint8_t uidLength;                          // Length of the UID (4 (Mifare Classic) or 7 (Mifare Ultralight) 
                                               // bytes depending on ISO14443A card type)
-                                                
+  Serial.println("loop");
+  if(Estado_Cerradura == true) { 
+    Serial.println("if loop Estado_Cerradura");
+    abrirPuerta();
+    Estado_Cerradura = false;
+  }
+
   if(NFC_Present == true) { 
     noInterrupts(); // desactivo interrupciones
     digitalWrite ( led, LOW ); // Detectada tarjeta
