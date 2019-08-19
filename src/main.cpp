@@ -42,6 +42,7 @@ Adafruit_PN532 nfc(SCK, MISO, MOSI, SS);
 // Definición de Variables
 volatile bool NFC_Present = false;    // Tarjeta NFC presente (variable interrupción)
 const int msApertura = 1000;         // 1,5 seg de apertura de la cerradura
+bool Estado_Cerradura = false;
 
 #define ARRAYSIZE 11 // Son 10 tarjetas y la posición 11 = "" para borrar.
 String idPermitido[ARRAYSIZE]={"108-18-101-3","16-31-183-195"}; // Tarjetas habilitadas para acceder
@@ -55,10 +56,10 @@ WiFiClient  clienteWifi;
 // Configuración MQTT
 PubSubClient clientMqtt(clienteWifi);
 const char* servidorMqtt = "192.168.1.99";
-const char* topicAcceso = "/casa/puerta/acceso";
-const char* topicAlta = "/casa/puerta/alta_NFC";
-const char* topicBaja = "/casa/puerta/baja_NFC";
-const char* topicControl = "/casa/puerta/control_NFC";
+const char* topicAcceso = "casa/puerta/acceso";
+const char* topicAlta = "casa/puerta/alta_NFC";
+const char* topicBaja = "casa/puerta/baja_NFC";
+const char* topicControl = "casa/puerta/control_NFC";
 
 
 /////// DEFINICIÓN DE FUNCIONES   /////////////////////////////////////////////
@@ -137,7 +138,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     }
     // Se abre la puerta
     if ((char)payload[0] == '1') {
-      abrirPuerta();
+      Estado_Cerradura = true;
     } 
   }
   
@@ -308,6 +309,8 @@ void setup() {
 
 void loop () {
 
+  Serial.println("Looo()......");
+
   ArduinoOTA.handle(); // Actualización código por OTA
   
   // Comprobamos conexión con broker MQTT
@@ -322,7 +325,11 @@ void loop () {
   uint8_t N_uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
   uint8_t uidLength;                          // Length of the UID (4 (Mifare Classic) or 7 (Mifare Ultralight) 
                                               // bytes depending on ISO14443A card type)
-                                                
+  if(Estado_Cerradura == true) { 
+    abrirPuerta();
+    Estado_Cerradura = false;
+  }
+
   if(NFC_Present == true) { 
     noInterrupts(); // desactivo interrupciones
     digitalWrite ( led, LOW ); // Detectada tarjeta
