@@ -29,7 +29,7 @@
 #define MISO  D5
 #define RQ    D2
 
-Ticker  everySegundo;
+Ticker everySegundo;
 
 //Objeto Lector tarjetas NFC
 Adafruit_PN532 nfc(SCK, MISO, MOSI, SS);
@@ -70,14 +70,19 @@ const char* topicControl = "casa/puerta/control_NFC";
 
 // Apertura de la cerradura. Esta función será llamada cada vez que se haya concedido el acceso a una tarjeta.
 void abrirPuerta(){   
-    digitalWrite (cerradura, HIGH);
-    delay(msApertura);
-    digitalWrite (cerradura, LOW);
+  #ifdef DEBUG_ACCESO
+    Serial.println("abrirPuertaManual ............");
+  #endif
+  digitalWrite (cerradura, HIGH);
+  delay(msApertura);
+  digitalWrite (cerradura, LOW);
 }
 
 void abrirPuertaManual(){   
   if (manual){
-    Serial.println("abrirPuertaManual ............");
+    #ifdef DEBUG_ACCESO
+      Serial.println("abrirPuertaManual ............");
+    #endif
     digitalWrite (cerradura, Estado_Cerradura);
     if (Estado_Cerradura == LOW){
       manual = false;
@@ -208,7 +213,6 @@ void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties 
         //abrirPuerta();
         Estado_Cerradura = HIGH;
         manual = true;
-        Serial.println("Estado_Cerradura = HIGH");
       } 
     }
     
@@ -371,12 +375,9 @@ void loop () {
   uint8_t N_uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
   uint8_t uidLength;                          // Length of the UID (4 (Mifare Classic) or 7 (Mifare Ultralight) 
                                               // bytes depending on ISO14443A card type)
-  Serial.println("loop");
-  if(Estado_Cerradura == true) { 
-    Serial.println("if loop Estado_Cerradura");
-    abrirPuerta();
-    Estado_Cerradura = false;
-  }
+  #ifdef DEBUG_ACCESO
+    Serial.println("loop");
+  #endif
 
   if(NFC_Present == true) { 
     noInterrupts(); // desactivo interrupciones
