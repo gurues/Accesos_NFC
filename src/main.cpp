@@ -85,6 +85,7 @@ void abrirPuertaManual(){
   digitalWrite (cerradura, Estado_Cerradura);
   if (Estado_Cerradura == LOW){
     open_manual.detach(); // se para el Ticker apertura manual
+  }
   Estado_Cerradura = LOW;
 }
 
