@@ -71,7 +71,7 @@ const char* topicControl = "casa/puerta/control_NFC";
 // Apertura de la cerradura. Esta función será llamada cada vez que se haya concedido el acceso a una tarjeta.
 void abrirPuerta(){   
   #ifdef DEBUG_ACCESO
-    Serial.println("abrirPuertaManual ............");
+    Serial.println("abrirPuerta_UID_Card ............");
   #endif
   digitalWrite (cerradura, HIGH);
   delay(msApertura);
@@ -80,7 +80,7 @@ void abrirPuerta(){
 
 void abrirPuertaManual(){   
   #ifdef DEBUG_ACCESO
-    Serial.println("abrirPuertaManual ............");
+    Serial.println("abrirPuerta_Manual ............");
   #endif
   digitalWrite (cerradura, Estado_Cerradura);
   if (Estado_Cerradura == LOW){
