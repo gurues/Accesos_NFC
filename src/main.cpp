@@ -20,6 +20,7 @@
 #include <ArduinoOTA.h>         // Actualización por OTA
 #include <ESP8266mDNS.h>        // Actualización por OTA
 #include <WiFiUdp.h>            // Actualización por OTA
+#include <Ticker.h>
 
 // Pines SPI 
 #define SCK   D0
@@ -27,6 +28,8 @@
 #define SS    D7
 #define MISO  D5
 #define RQ    D2
+
+Ticker  everySegundo;
 
 //Objeto Lector tarjetas NFC
 Adafruit_PN532 nfc(SCK, MISO, MOSI, SS);
@@ -42,7 +45,8 @@ Adafruit_PN532 nfc(SCK, MISO, MOSI, SS);
 // Definición de Variables
 volatile bool NFC_Present = false;    // Tarjeta NFC presente (variable interrupción)
 unsigned long msApertura = 1000;      // 1,5 seg de apertura de la cerradura
-volatile bool Estado_Cerradura = false;        // Tarjeta NFC presente (variable estado )
+int Estado_Cerradura = LOW;        // Tarjeta NFC presente (variable estado )
+bool manual = false;
 
 #define ARRAYSIZE 11 // Son 10 tarjetas y la posición 11 = "" para borrar.
 String idPermitido[ARRAYSIZE]={"108-18-101-3","16-31-183-195"}; // Tarjetas habilitadas para acceder
@@ -61,20 +65,25 @@ const char* topicAlta = "casa/puerta/alta_NFC";
 const char* topicBaja = "casa/puerta/baja_NFC";
 const char* topicControl = "casa/puerta/control_NFC";
 
-
+  
 /////// DEFINICIÓN DE FUNCIONES   /////////////////////////////////////////////
 
 // Apertura de la cerradura. Esta función será llamada cada vez que se haya concedido el acceso a una tarjeta.
 void abrirPuerta(){   
     digitalWrite (cerradura, HIGH);
     delay(msApertura);
-    /*
-    //espera msApertura
-    unsigned long inicio_Millis = millis() + msApertura;
-    unsigned long actual_Millis= millis();
-    while (actual_Millis < inicio_Millis){}
-    */
     digitalWrite (cerradura, LOW);
+}
+
+void abrirPuertaManual(){   
+  if (manual){
+    Serial.println("abrirPuertaManual ............");
+    digitalWrite (cerradura, Estado_Cerradura);
+    if (Estado_Cerradura == LOW){
+      manual = false;
+    }
+    Estado_Cerradura = LOW;
+  }
 }
 
 // Conectando a WiFi network
@@ -197,8 +206,9 @@ void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties 
       // Se abre la puerta
       if ((char)payload[0] == '1') {
         //abrirPuerta();
-        Estado_Cerradura = true;
-        Serial.println("Estado_Cerradura = true");
+        Estado_Cerradura = HIGH;
+        manual = true;
+        Serial.println("Estado_Cerradura = HIGH");
       } 
     }
     
@@ -347,6 +357,8 @@ void setup() {
   Serial.println("----- Control de Acceso NFC OPERATIVO -----");
 #endif 
 
+everySegundo.attach_ms(1000, abrirPuertaManual); // "register" your callback3
+
 }
 
 void loop () {
@@ -412,5 +424,5 @@ void loop () {
   }
   
   nfc.enableRead(PN532_MIFARE_ISO14443A, N_uid, &uidLength);
-  
+    
 }
