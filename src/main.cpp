@@ -29,7 +29,7 @@
 #define MISO  D5
 #define RQ    D2
 
-Ticker everySegundo;
+Ticker open_manual;
 
 //Objeto Lector tarjetas NFC
 Adafruit_PN532 nfc(SCK, MISO, MOSI, SS);
@@ -44,7 +44,7 @@ Adafruit_PN532 nfc(SCK, MISO, MOSI, SS);
 
 // Definición de Variables
 volatile bool NFC_Present = false;    // Tarjeta NFC presente (variable interrupción)
-unsigned long msApertura = 1000;      // 1,5 seg de apertura de la cerradura
+unsigned long msApertura = 500;      // 1,5 seg de apertura de la cerradura
 int Estado_Cerradura = LOW;        // Tarjeta NFC presente (variable estado )
 bool manual = false;
 
@@ -84,8 +84,7 @@ void abrirPuertaManual(){
   #endif
   digitalWrite (cerradura, Estado_Cerradura);
   if (Estado_Cerradura == LOW){
-    everySegundo.detach(); // "register" your callback3
-  }
+    open_manual.detach(); // se para el Ticker apertura manual
   Estado_Cerradura = LOW;
 }
 
@@ -210,7 +209,7 @@ void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties 
       if ((char)payload[0] == '1') {
         //abrirPuerta();
         Estado_Cerradura = HIGH;
-        everySegundo.attach_ms(1000, abrirPuertaManual); // "register" your callback3
+        open_manual.attach_ms(msApertura, abrirPuertaManual); // Activo callback open manual
       } 
     }
     
@@ -358,8 +357,6 @@ void setup() {
   Serial.println("");
   Serial.println("----- Control de Acceso NFC OPERATIVO -----");
 #endif 
-
-//everySegundo.attach_ms(1000, abrirPuertaManual); // "register" your callback3
 
 }
 
