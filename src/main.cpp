@@ -79,16 +79,14 @@ void abrirPuerta(){
 }
 
 void abrirPuertaManual(){   
-  if (manual){
-    #ifdef DEBUG_ACCESO
-      Serial.println("abrirPuertaManual ............");
-    #endif
-    digitalWrite (cerradura, Estado_Cerradura);
-    if (Estado_Cerradura == LOW){
-      manual = false;
-    }
-    Estado_Cerradura = LOW;
+  #ifdef DEBUG_ACCESO
+    Serial.println("abrirPuertaManual ............");
+  #endif
+  digitalWrite (cerradura, Estado_Cerradura);
+  if (Estado_Cerradura == LOW){
+    everySegundo.detach(); // "register" your callback3
   }
+  Estado_Cerradura = LOW;
 }
 
 // Conectando a WiFi network
@@ -212,7 +210,7 @@ void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties 
       if ((char)payload[0] == '1') {
         //abrirPuerta();
         Estado_Cerradura = HIGH;
-        manual = true;
+        everySegundo.attach_ms(1000, abrirPuertaManual); // "register" your callback3
       } 
     }
     
@@ -361,7 +359,7 @@ void setup() {
   Serial.println("----- Control de Acceso NFC OPERATIVO -----");
 #endif 
 
-everySegundo.attach_ms(1000, abrirPuertaManual); // "register" your callback3
+//everySegundo.attach_ms(1000, abrirPuertaManual); // "register" your callback3
 
 }
 
