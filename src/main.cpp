@@ -29,6 +29,7 @@
 #define MISO  D5
 #define RQ    D2
 
+//Objeto Ticker para la apertura manual
 Ticker open_manual;
 
 //Objeto Lector tarjetas NFC
@@ -40,13 +41,11 @@ Adafruit_PN532 nfc(SCK, MISO, MOSI, SS);
 // Definición de pines y ctes
 #define led         D4            // Led de control placa Wemos
 #define cerradura   D1            // Salida control rele puerta
-//#define nfcretries 0x5F           // Número máximo de intentos para leer una tarjeta nfc
 
 // Definición de Variables
 volatile bool NFC_Present = false;    // Tarjeta NFC presente (variable interrupción)
 unsigned long msApertura = 500;      // 1,5 seg de apertura de la cerradura
 int Estado_Cerradura = LOW;        // Tarjeta NFC presente (variable estado )
-bool manual = false;
 
 #define ARRAYSIZE 11 // Son 10 tarjetas y la posición 11 = "" para borrar.
 String idPermitido[ARRAYSIZE]={"108-18-101-3","16-31-183-195","150-156-49-249","92-127-211-3"}; // Tarjetas habilitadas para acceder
@@ -64,7 +63,6 @@ const char* topicAcceso = "casa/puerta/acceso";
 const char* topicAlta = "casa/puerta/alta_NFC";
 const char* topicBaja = "casa/puerta/baja_NFC";
 const char* topicControl = "casa/puerta/control_NFC";
-
   
 /////// DEFINICIÓN DE FUNCIONES   /////////////////////////////////////////////
 
@@ -78,6 +76,7 @@ void abrirPuerta(){
   digitalWrite (cerradura, LOW);
 }
 
+// Apertura de la cerradura. Esta función será llamada cada vez que se abra la puerta de forma manual
 void abrirPuertaManual(){   
   #ifdef DEBUG_ACCESO
     Serial.println("abrirPuerta_Manual ............");
@@ -197,18 +196,19 @@ void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties 
         ESP.restart();
       } 
       // Muestra uid de las tarjetas con acceso Puerto serie
-      if ((char)payload[0] == 'I') {
-        for (int X = 0; X < ARRAYSIZE; X++) {
-          Serial.println(idPermitido[X]);
+      #ifdef DEBUG_ACCESO
+        if ((char)payload[0] == 'I') {
+          for (int X = 0; X < ARRAYSIZE; X++) {
+            Serial.println(idPermitido[X]);
+          }
+          Serial.print("ARRAYSIZE= ");
+          Serial.println(ARRAYSIZE);
+          Serial.print("ARRAYUSE= ");
+          Serial.println(ARRAYUSE);
         }
-        Serial.print("ARRAYSIZE= ");
-        Serial.println(ARRAYSIZE);
-        Serial.print("ARRAYUSE= ");
-        Serial.println(ARRAYUSE);
-      }
-      // Se abre la puerta
+      #endif
+      // Se abre la puerta de forma manual
       if ((char)payload[0] == '1') {
-        //abrirPuerta();
         Estado_Cerradura = HIGH;
         open_manual.attach_ms(msApertura, abrirPuertaManual); // Activo callback open manual
       } 
@@ -218,27 +218,29 @@ void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties 
     if ((String)topic==(String)topicAlta){
       String alta_uid = myString.substring(0, length);
       bool incluir = true;
-      //#ifdef DEBUG_ACCESO
+      #ifdef DEBUG_ACCESO
         Serial.print("Alta Tarjeta NFC UID: ");
         Serial.println(alta_uid);
-      //#endif
+      #endif
       if ((ARRAYSIZE-2)>ARRAYUSE){
         for(int i = 0; i <= ARRAYUSE; i++){
+          #ifdef DEBUG_ACCESO
             Serial.println("idPermitido: " + idPermitido[i]);
             Serial.println("Tamaño alta_uid: " + String(alta_uid.length()));
             Serial.println("Tamaño idPermitido: " + String((idPermitido[i]).length()));
-            if(alta_uid == idPermitido[i]){
-              incluir = false;
-              break;
-            }
+          #endif
+          if(alta_uid == idPermitido[i]){
+            incluir = false;
+            break;
+          }
         }
         if (incluir){
-            ARRAYUSE++;
-            idPermitido[ARRAYUSE-1]=alta_uid;
-          // #ifdef DEBUG_ACCESO
-              Serial.print("Se ha dado de Alta Tarjeta NFC UID: ");
-              Serial.println(alta_uid);
-          // #endif
+          ARRAYUSE++;
+          idPermitido[ARRAYUSE-1]=alta_uid;
+          #ifdef DEBUG_ACCESO
+            Serial.print("Se ha dado de Alta Tarjeta NFC UID: ");
+            Serial.println(alta_uid);
+          #endif
         }
       }
     } 
@@ -246,20 +248,22 @@ void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties 
     // Si se recibe un topic de Baja tarjeta NFC
     if ((String)topic==(String)topicBaja){
       String baja_uid= myString.substring(0, length);
-      //#ifdef DEBUG_ACCESO
+      #ifdef DEBUG_ACCESO
         Serial.print("Baja Tarjeta NFC UID: ");
         Serial.println(baja_uid);
-      //#endif
+      #endif
       for(int i = 0; i <= ARRAYUSE; i++){
         if(baja_uid == idPermitido[i]){
           for(int n = i; n < ARRAYUSE+1; n++){
             idPermitido[n]=idPermitido[n+1];
           }
           ARRAYUSE--;
-          Serial.print("ARRAYSIZE= ");
-          Serial.println(ARRAYSIZE);
-          Serial.print("ARRAYUSE= ");
-          Serial.println(ARRAYUSE);
+          #ifdef DEBUG_ACCESO
+            Serial.print("ARRAYSIZE= ");
+            Serial.println(ARRAYSIZE);
+            Serial.print("ARRAYUSE= ");
+            Serial.println(ARRAYUSE);
+          #endif
           break;
         }
       }
@@ -293,6 +297,10 @@ void Card_access(){
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void setup() {
+
+  #ifdef DEBUG_ACCESO
+    Serial.println("----------- setup() -----------------");
+  #endif
   
   Serial.begin(115200);
 
@@ -308,7 +316,7 @@ void setup() {
   pinMode ( cerradura, OUTPUT );
   digitalWrite ( cerradura, LOW );
 
-  nfc.begin();                          // Inicio NFC Hardware
+  nfc.begin();  // Inicio NFC Hardware
   digitalWrite ( led, LOW );
   uint32_t versiondata = nfc.getFirmwareVersion();
   if (! versiondata) {
@@ -351,6 +359,7 @@ void setup() {
   //ArduinoOTA.setPassword("2047");
   ArduinoOTA.begin();
 
+  //Activo interrupciones lector NFC
   attachInterrupt(digitalPinToInterrupt(RQ), IRQ_ISR, FALLING);
   
 #ifdef DEBUG_ACCESO 
@@ -363,6 +372,10 @@ void setup() {
 
 void loop () {
 
+  #ifdef DEBUG_ACCESO
+    Serial.println("----------- loop() -----------------");
+  #endif
+
   ArduinoOTA.handle(); // Actualización código por OTA
   
   //Variables de loop()
@@ -371,10 +384,7 @@ void loop () {
   uint8_t N_uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
   uint8_t uidLength;                          // Length of the UID (4 (Mifare Classic) or 7 (Mifare Ultralight) 
                                               // bytes depending on ISO14443A card type)
-  #ifdef DEBUG_ACCESO
-    Serial.println("loop");
-  #endif
-
+  
   if(NFC_Present == true) { 
     noInterrupts(); // desactivo interrupciones
     digitalWrite ( led, LOW ); // Detectada tarjeta
