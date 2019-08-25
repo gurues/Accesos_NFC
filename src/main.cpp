@@ -50,7 +50,7 @@ bool manual = false;
 
 #define ARRAYSIZE 11 // Son 10 tarjetas y la posición 11 = "" para borrar.
 String idPermitido[ARRAYSIZE]={"108-18-101-3","16-31-183-195","150-156-49-249","92-127-211-3"}; // Tarjetas habilitadas para acceder
-int ARRAYUSE= 2; // Puntero usado del array idPermitido[0,1,2,3,4,5,6,7,8,9,10], la pos 10 para borrar
+int ARRAYUSE= 4; // Puntero usado del array idPermitido[0,1,2,3,4,5,6,7,8,9,10], la pos 10 para borrar
 
 // Configuración WIFI
 const char *ssid = "MOVISTAR_9E06";
