@@ -299,10 +299,9 @@ void Card_access(){
 void setup() {
 
   #ifdef DEBUG_ACCESO
-    Serial.println("----------- setup() -----------------");
+    Serial.println("----------- setup() -----------------");  
+    Serial.begin(115200);
   #endif
-  
-  Serial.begin(115200);
 
   //Configuración de tarjetas con acceso permitido 
   // guardar SPIFFS *********************************************************************************
