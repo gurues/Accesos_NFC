@@ -9,25 +9,9 @@
  * 
  */
 
-
-
 #include <Arduino.h>
 
-#include <ESP8266WiFi.h>        // WIFI ESP8266
-#include <AsyncMqttClient.h>    // MQTT Libreria asincrona basada en eventos
-#include <SPI.h>                // Bus SPI
-#include <Adafruit_PN532.h>     // LECTOR TRAJETAS NFC
-#include <ArduinoOTA.h>         // Actualización por OTA
-#include <ESP8266mDNS.h>        // Actualización por OTA
-#include <WiFiUdp.h>            // Actualización por OTA
-#include <Ticker.h>             // Temporizador funciones asincronas
-
-// Pines SPI 
-#define SCK   D0
-#define MOSI  D6
-#define SS    D7
-#define MISO  D5
-#define RQ    D2
+#include <configuracion.h>
 
 //Objeto Ticker para la apertura manual
 Ticker open_manual;
@@ -35,34 +19,16 @@ Ticker open_manual;
 //Objeto Lector tarjetas NFC
 Adafruit_PN532 nfc(SCK, MISO, MOSI, SS);
 
-// Descomentar para mostrar debug monitor serie
-#define DEBUG_ACCESO
-
-// Definición de pines y ctes
-#define led         D4            // Led de control placa Wemos
-#define cerradura   D1            // Salida control rele puerta
+// Objeto Broker MQTT Asincrono
+AsyncMqttClient mqttClient;
 
 // Definición de Variables
 volatile bool NFC_Present = false;    // Tarjeta NFC presente (variable interrupción)
 const int msApertura = 500;         // 0,5 seg de apertura de la cerradura
 bool Estado_Cerradura = false;
-
-#define ARRAYSIZE 11 // Son 10 tarjetas y la posición 11 = "" para borrar.
 String idPermitido[ARRAYSIZE]={"108-18-101-3","16-31-183-195","150-156-49-249","92-127-211-3"}; // Tarjetas habilitadas para acceder
 int ARRAYUSE= 4; // Puntero usado del array idPermitido[0,1,2,3,4,5,6,7,8,9,10], la pos 10 para borrar
 
-// Configuración WIFI
-const char *ssid = "MOVISTAR_9E06";
-const char *password = "1CD0FD833D86C2705DD2";
-
-// Configuración MQTT
-#define MQTT_HOST IPAddress(192, 168, 1, 99)
-#define MQTT_PORT 1883
-AsyncMqttClient mqttClient;
-const char* topicAcceso = "casa/puerta/acceso";
-const char* topicAlta = "casa/puerta/alta_NFC";
-const char* topicBaja = "casa/puerta/baja_NFC";
-const char* topicControl = "casa/puerta/control_NFC";
   
 /////// DEFINICIÓN DE FUNCIONES   /////////////////////////////////////////////
 
@@ -354,9 +320,9 @@ void setup() {
 #endif
 
   //Actualización código por OTA
-  ArduinoOTA.setPort(8266);
-  ArduinoOTA.setHostname("Control_Acceso");
-  //ArduinoOTA.setPassword("2047");
+  ArduinoOTA.setPort(OTA_Port);
+  ArduinoOTA.setHostname(OTA_Hostname);
+  ArduinoOTA.setPassword(OTA_Password);
   ArduinoOTA.begin();
 
   //Activo interrupciones lector NFC

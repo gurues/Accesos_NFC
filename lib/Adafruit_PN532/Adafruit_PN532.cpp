@@ -263,7 +263,7 @@ boolean Adafruit_PN532::sendCommandCheckAck(uint8_t *cmd, uint8_t cmdlen, uint16
 */
 /**************************************************************************/
 boolean Adafruit_PN532::writeGPIO(uint8_t pinstate) {
-  uint8_t errorbit;
+  //uint8_t errorbit;
 
   // Make sure pinstate does not try to toggle P32 or P34
   pinstate |= (1 << PN532_GPIO_P32) | (1 << PN532_GPIO_P34);
@@ -533,7 +533,7 @@ bool Adafruit_PN532::mifareclassic_IsTrailerBlock (uint32_t uiBlock)
 /**************************************************************************/
 uint8_t Adafruit_PN532::mifareclassic_AuthenticateBlock (uint8_t * uid, uint8_t uidLen, uint32_t blockNumber, uint8_t keyNumber, uint8_t * keyData)
 {
-  uint8_t len;
+  //uint8_t len;
   uint8_t i;
   
   // Hang on to the key and uid data
