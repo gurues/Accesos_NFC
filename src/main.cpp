@@ -20,7 +20,7 @@
 #include <ArduinoOTA.h>         // Actualización por OTA
 #include <ESP8266mDNS.h>        // Actualización por OTA
 #include <WiFiUdp.h>            // Actualización por OTA
-#include <Ticker.h>
+#include <Ticker.h>             // Temporizador funciones asincronas
 
 // Pines SPI 
 #define SCK   D0
@@ -44,7 +44,7 @@ Adafruit_PN532 nfc(SCK, MISO, MOSI, SS);
 
 // Definición de Variables
 volatile bool NFC_Present = false;    // Tarjeta NFC presente (variable interrupción)
-const int msApertura = 500;         // 1,5 seg de apertura de la cerradura
+const int msApertura = 500;         // 0,5 seg de apertura de la cerradura
 bool Estado_Cerradura = false;
 
 #define ARRAYSIZE 11 // Son 10 tarjetas y la posición 11 = "" para borrar.
@@ -144,6 +144,7 @@ void onMqttConnect(bool sessionPresent) {
     Serial.println(sessionPresent);
   #endif
 
+    // Subscrito a los topic Acceso, Alta, Baja y Control
     mqttClient.subscribe(topicAcceso, 0);
     mqttClient.subscribe(topicAlta, 2);
     mqttClient.subscribe(topicBaja, 2);
@@ -169,7 +170,7 @@ void onMqttDisconnect(AsyncMqttClientDisconnectReason reason) {
     
 }
 
-//Gestión de Mensajes Suscritos MQTT ***************************************************************************************************
+//Gestión de la llegada de Mensajes Subscritos MQTT ********************************************************************************************
 void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t length, size_t index, size_t total) {
 
   String myString=(char*)payload;
@@ -189,7 +190,7 @@ void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties 
     Serial.print("  retain: ");  Serial.println(properties.retain);
   #endif
 
-    // Si re recibe un topic de Control
+    // Si se recibe un topic de Control
     if ((String)topic==(String)topicControl){
       // Se reinicia Wemos
       if ((char)payload[0] == 'R') {
