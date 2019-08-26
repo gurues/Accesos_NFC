@@ -44,13 +44,8 @@ Adafruit_PN532 nfc(SCK, MISO, MOSI, SS);
 
 // Definición de Variables
 volatile bool NFC_Present = false;    // Tarjeta NFC presente (variable interrupción)
-<<<<<<< HEAD
-const int msApertura = 1000;         // 1,5 seg de apertura de la cerradura
+const int msApertura = 500;         // 1,5 seg de apertura de la cerradura
 bool Estado_Cerradura = false;
-=======
-unsigned long msApertura = 500;      // 1,5 seg de apertura de la cerradura
-int Estado_Cerradura = LOW;        // Tarjeta NFC presente (variable estado )
->>>>>>> MQTT_Asincrono
 
 #define ARRAYSIZE 11 // Son 10 tarjetas y la posición 11 = "" para borrar.
 String idPermitido[ARRAYSIZE]={"108-18-101-3","16-31-183-195","150-156-49-249","92-127-211-3"}; // Tarjetas habilitadas para acceder
@@ -61,24 +56,14 @@ const char *ssid = "MOVISTAR_9E06";
 const char *password = "1CD0FD833D86C2705DD2";
 
 // Configuración MQTT
-<<<<<<< HEAD
-PubSubClient clientMqtt(clienteWifi);
-const char* servidorMqtt = "192.168.1.99";
-=======
 #define MQTT_HOST IPAddress(192, 168, 1, 99)
 #define MQTT_PORT 1883
 AsyncMqttClient mqttClient;
->>>>>>> MQTT_Asincrono
 const char* topicAcceso = "casa/puerta/acceso";
 const char* topicAlta = "casa/puerta/alta_NFC";
 const char* topicBaja = "casa/puerta/baja_NFC";
 const char* topicControl = "casa/puerta/control_NFC";
-<<<<<<< HEAD
-
-
-=======
   
->>>>>>> MQTT_Asincrono
 /////// DEFINICIÓN DE FUNCIONES   /////////////////////////////////////////////
 
 // Apertura de la cerradura. Esta función será llamada cada vez que se haya concedido el acceso a una tarjeta.
@@ -181,27 +166,6 @@ void onMqttDisconnect(AsyncMqttClientDisconnectReason reason) {
     if (WiFi.isConnected()) {
       connectToMqtt(); 
     }
-<<<<<<< HEAD
-    // Se abre la puerta
-    if ((char)payload[0] == '1') {
-      Estado_Cerradura = true;
-    } 
-  }
-  
-  // Si re recibe un topic de Alta tarjeta NFC
-  if ((String)topic==(String)topicAlta){
-     String alta_uid= myString.substring(0, length);
-     bool incluir = true;
-     //#ifdef DEBUG_ACCESO
-       Serial.print("Alta Tarjeta NFC UID: ");
-       Serial.println(alta_uid);
-     //#endif
-     if ((ARRAYSIZE-2)>ARRAYUSE){
-       for(int i = 0; i <= ARRAYUSE; i++){
-          Serial.println("idPermitido: " + idPermitido[i]);
-          Serial.println("Tamaño alta_uid: " + String(alta_uid.length()));
-          Serial.println("Tamaño idPermitido: " + String((idPermitido[i]).length()));
-=======
     
 }
 
@@ -265,7 +229,6 @@ void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties 
             Serial.println("Tamaño alta_uid: " + String(alta_uid.length()));
             Serial.println("Tamaño idPermitido: " + String((idPermitido[i]).length()));
           #endif
->>>>>>> MQTT_Asincrono
           if(alta_uid == idPermitido[i]){
             incluir = false;
             break;
@@ -408,13 +371,9 @@ void setup() {
 
 void loop () {
 
-<<<<<<< HEAD
-  Serial.println("Looo()......");
-=======
   #ifdef DEBUG_ACCESO
     Serial.println("----------- loop() -----------------");
   #endif
->>>>>>> MQTT_Asincrono
 
   ArduinoOTA.handle(); // Actualización código por OTA
   
@@ -424,15 +383,7 @@ void loop () {
   uint8_t N_uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
   uint8_t uidLength;                          // Length of the UID (4 (Mifare Classic) or 7 (Mifare Ultralight) 
                                               // bytes depending on ISO14443A card type)
-<<<<<<< HEAD
-  if(Estado_Cerradura == true) { 
-    abrirPuerta();
-    Estado_Cerradura = false;
-  }
-
-=======
   
->>>>>>> MQTT_Asincrono
   if(NFC_Present == true) { 
     noInterrupts(); // desactivo interrupciones
     digitalWrite ( led, LOW ); // Detectada tarjeta
