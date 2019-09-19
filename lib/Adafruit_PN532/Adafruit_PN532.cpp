@@ -404,7 +404,7 @@ void Adafruit_PN532::enableRead(uint8_t cardbaudrate, uint8_t * uid, uint8_t * u
     pn532_packetbuffer[1] = 1;  // max 1 cards at once (we can set this to 2 later)
     pn532_packetbuffer[2] = cardbaudrate;
     
-    sendCommandCheckAck(pn532_packetbuffer, 3, 0);
+    sendCommandCheckAck(pn532_packetbuffer, 3, 250U); // 250 ms tiempo de bloqueo lector NFC
 }
 
 

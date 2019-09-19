@@ -10,8 +10,17 @@
  */
 
 #include <Arduino.h>
+#include <ESP8266WiFi.h>        // WIFI ESP8266
+#include <AsyncMqttClient.h>    // MQTT Libreria asincrona basada en eventos
+#include <SPI.h>                // Bus SPI
+#include <Adafruit_PN532.h>     // LECTOR TRAJETAS NFC
+#include <ArduinoOTA.h>         // Actualización por OTA
+#include <ESP8266mDNS.h>        // Actualización por OTA
+#include <WiFiUdp.h>            // Actualización por OTA
+#include <Ticker.h>             // Temporizador funciones asincronas
 
-#include <configuracion.h>
+#include <credenciales.h>      // Credencales WIFI y MQTT BROKER
+#include <configuracion.h>     // Configuración del proyecto
 
 //Objeto Ticker para la apertura manual
 Ticker open_manual;
@@ -24,11 +33,7 @@ AsyncMqttClient mqttClient;
 
 // Definición de Variables
 volatile bool NFC_Present = false;    // Tarjeta NFC presente (variable interrupción)
-const int msApertura = 500;         // 0,5 seg de apertura de la cerradura
-bool Estado_Cerradura = false;
-String idPermitido[ARRAYSIZE]={"108-18-101-3","16-31-183-195","150-156-49-249","92-127-211-3"}; // Tarjetas habilitadas para acceder
-int ARRAYUSE= 4; // Puntero usado del array idPermitido[0,1,2,3,4,5,6,7,8,9,10], la pos 10 para borrar
-
+bool Estado_Cerradura = false;        // Variable global que representa el estado de la cerradura
   
 /////// DEFINICIÓN DE FUNCIONES   /////////////////////////////////////////////
 
@@ -43,6 +48,7 @@ void abrirPuerta(){
 }
 
 // Apertura de la cerradura. Esta función será llamada cada vez que se abra la puerta de forma manual
+// a través del nodered
 void abrirPuertaManual(){   
   #ifdef DEBUG_ACCESO
     Serial.println("abrirPuerta_Manual ............");
@@ -50,11 +56,12 @@ void abrirPuertaManual(){
   digitalWrite (cerradura, Estado_Cerradura);
   if (Estado_Cerradura == LOW){
     open_manual.detach(); // se para el Ticker apertura manual
+    mqttClient.publish(topicAcceso, 0, true, "APERTURA MANUAL"); // Publico uid CARD leida
   }
   Estado_Cerradura = LOW;
 }
 
-// Conectando a WiFi network
+// Conectando a la WiFi network
 void setup_wifi() {
 
     delay(10);
@@ -63,9 +70,7 @@ void setup_wifi() {
     Serial.print("Conectado a ");
     Serial.println(ssid);
   #endif
-    IPAddress ip(192, 168, 1, 150);
-    IPAddress gateway(192,168,1,1);
-    IPAddress subnet (255,255,255,0);
+    
     WiFi.mode(WIFI_STA);
     WiFi.begin(ssid, password);
     WiFi.config(ip,gateway,subnet);
@@ -163,18 +168,21 @@ void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties 
         ESP.restart();
       } 
       // Muestra uid de las tarjetas con acceso Puerto serie
-      #ifdef DEBUG_ACCESO
-        if ((char)payload[0] == 'I') {
-          for (int X = 0; X < ARRAYSIZE; X++) {
+      if ((char)payload[0] == 'I') {
+        for (int X = 0; X < ARRAYUSE; X++) {
+          #ifdef DEBUG_ACCESO
             Serial.println(idPermitido[X]);
-          }
+          #endif
+          mqttClient.publish(topicTarjetas, 0, true, (idPermitido[X]).c_str()); // Publico tarjetas con permiso
+        }
+        #ifdef DEBUG_ACCESO
           Serial.print("ARRAYSIZE= ");
           Serial.println(ARRAYSIZE);
           Serial.print("ARRAYUSE= ");
           Serial.println(ARRAYUSE);
-        }
-      #endif
-      // Se abre la puerta de forma manual
+        #endif
+      }
+      // Se abre la puerta de forma manual desde nodered
       if ((char)payload[0] == '1') {
         Estado_Cerradura = HIGH;
         open_manual.attach_ms(msApertura, abrirPuertaManual); // Activo callback open manual
@@ -319,10 +327,8 @@ void setup() {
   Serial.println("Configurado [MQTT]");
 #endif
 
-  //Actualización código por OTA
-  ArduinoOTA.setPort(OTA_Port);
-  ArduinoOTA.setHostname(OTA_Hostname);
-  ArduinoOTA.setPassword(OTA_Password);
+  // Inicializo OTA
+  ArduinoOTA.setHostname("Accesos_NFC"); // Hostname OTA
   ArduinoOTA.begin();
 
   //Activo interrupciones lector NFC
@@ -339,11 +345,11 @@ void setup() {
 void loop () {
 
   #ifdef DEBUG_ACCESO
-    Serial.println("----------- loop() -----------------");
+   // Serial.println("----------- loop() -----------------");
   #endif
-
+ 
   ArduinoOTA.handle(); // Actualización código por OTA
-  
+
   //Variables de loop()
   String uid;
   uint8_t puerta;
@@ -353,28 +359,24 @@ void loop () {
   
   if(NFC_Present == true) { 
     noInterrupts(); // desactivo interrupciones
-    digitalWrite ( led, LOW ); // Detectada tarjeta
-    #ifdef DEBUG_ACCESO
-      Serial.println("Detectada Tarjeta NFC ........");
-    #endif
     puerta = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, &N_uid[0], &uidLength);
-    #ifdef DEBUG_ACCESO
-      Serial.print("puerta= ");Serial.println(puerta);
-    #endif
     if (puerta){
+      digitalWrite ( led, LOW ); // Detectada tarjeta
       #ifdef DEBUG_ACCESO
         Serial.print("Encontrada ISO14443A card UID: ");
         Serial.println(PrintHex(N_uid,uidLength));
+        bool noEncontrado = true;
       #endif
       // espera hasta que se quite la tarjeta
       while (nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, &N_uid[0], &uidLength)) {}
       uid = PrintHex(N_uid,uidLength);
       //Comprueba si card UID tiene acceso
-      bool noEncontrado = true;
       for(int i = 0; i < ARRAYUSE; i++){
         if(uid == idPermitido[i]){
           abrirPuerta();
-          noEncontrado = false;
+          #ifdef DEBUG_ACCESO
+            noEncontrado = false;
+          #endif
           break;
         }
       }

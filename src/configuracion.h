@@ -4,16 +4,8 @@ Configuración del Lector/REgistro tarjetas NFC
 
 #pragma once
 
-#include <ESP8266WiFi.h>        // WIFI ESP8266
-#include <AsyncMqttClient.h>    // MQTT Libreria asincrona basada en eventos
-#include <SPI.h>                // Bus SPI
-#include <Adafruit_PN532.h>     // LECTOR TRAJETAS NFC
-#include <ArduinoOTA.h>         // Actualización por OTA
-#include <ESP8266mDNS.h>        // Actualización por OTA
-#include <WiFiUdp.h>            // Actualización por OTA
-#include <Ticker.h>             // Temporizador funciones asincronas
-
-#include <credenciales.h>      // Credencales WIFI y MQTT BROKER
+// Descomentar para mostrar debug monitor serie
+#define DEBUG_ACCESO
 
 // Pines SPI LECTOR NFC
 #define SCK   D0
@@ -22,16 +14,14 @@ Configuración del Lector/REgistro tarjetas NFC
 #define MISO  D5
 #define RQ    D2
 
-// Descomentar para mostrar debug monitor serie
-#define DEBUG_ACCESO
-
-// Definición de pines y ctes
+// Definición de pines
 #define led         D4            // Led de control placa Wemos
 #define cerradura   D1            // Salida control rele puerta
-#define ARRAYSIZE   11            // Son 10 tarjetas y la posición 11 = "" para borrar.
 
-// TOPIC MQTT
-const char* topicAcceso = "casa/puerta/acceso";
-const char* topicAlta = "casa/puerta/alta_NFC";
-const char* topicBaja = "casa/puerta/baja_NFC";
-const char* topicControl = "casa/puerta/control_NFC";
+// Configuración tarjetas NFC --> idPermitido[0,1,2,3,4,5,6,7,8,9,10], la pos 10 para borrar
+#define ARRAYSIZE   11    // Nº de tarjetas con acceso, son 10 tarjetas y la posición 11 = "" para borrar.
+String idPermitido[ARRAYSIZE]={"108-18-101-3","16-31-183-195","150-156-49-249","92-127-211-3","204-149-106-3","15-50-233-67"}; // Tarjetas con acceso
+int ARRAYUSE= 6; // Nº de tarjetas actuales con acceso (Puntero usado del array)
+
+//Tiempo actuación apertura cerradura
+const int msApertura = 500;         // 0,5 seg de apertura de la cerradura
