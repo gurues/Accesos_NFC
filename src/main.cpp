@@ -264,11 +264,6 @@ void ICACHE_RAM_ATTR IRQ_ISR(){
 
 }
 
-void Card_access(){
-  
-
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void setup() {
@@ -277,11 +272,6 @@ void setup() {
     Serial.println("----------- setup() -----------------");  
     Serial.begin(115200);
   #endif
-
-  //Configuración de tarjetas con acceso permitido 
-  // guardar SPIFFS *********************************************************************************
-  
-  Card_access();
 
   //Configuración de Pines
   pinMode ( RQ, INPUT );

@@ -1,0 +1,1111 @@
+[
+    {
+        "id": "97ebf287.c978e",
+        "type": "tab",
+        "label": "Compartidos",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "9ad53f59.1eb46",
+        "type": "ui_button",
+        "z": "97ebf287.c978e",
+        "name": "Apertura Manual",
+        "group": "2cb7acd5.8c83d4",
+        "order": 2,
+        "width": "4",
+        "height": "1",
+        "passthru": true,
+        "label": "Apertura Manual ",
+        "tooltip": "",
+        "color": "withe",
+        "bgcolor": "blue",
+        "icon": "",
+        "payload": "1",
+        "payloadType": "str",
+        "topic": "",
+        "x": 370,
+        "y": 780,
+        "wires": [
+            [
+                "d9b14e97.4defe"
+            ]
+        ]
+    },
+    {
+        "id": "75c8f49d.89bfbc",
+        "type": "ui_button",
+        "z": "97ebf287.c978e",
+        "name": "",
+        "group": "2cb7acd5.8c83d4",
+        "order": 3,
+        "width": "4",
+        "height": "1",
+        "passthru": true,
+        "label": "RESET MANUAL",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "red",
+        "icon": "",
+        "payload": "R",
+        "payloadType": "str",
+        "topic": "",
+        "x": 370,
+        "y": 740,
+        "wires": [
+            [
+                "d9b14e97.4defe"
+            ]
+        ]
+    },
+    {
+        "id": "356ef7b5.b128c8",
+        "type": "mqtt in",
+        "z": "97ebf287.c978e",
+        "name": "",
+        "topic": "casa/puerta/acceso",
+        "qos": "0",
+        "datatype": "auto",
+        "broker": "",
+        "x": 150,
+        "y": 180,
+        "wires": [
+            [
+                "d530b4f0.15caa8"
+            ]
+        ]
+    },
+    {
+        "id": "97ab6fae.82ee4",
+        "type": "comment",
+        "z": "97ebf287.c978e",
+        "name": "CONTROL HOME: CONTROL / GESTON DE ACCESOS TARJETAS NFC",
+        "info": "",
+        "x": 320,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "d530b4f0.15caa8",
+        "type": "switch",
+        "z": "97ebf287.c978e",
+        "name": "CONTROL uid NFC",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "106-16-106-6",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "17-37-187-197",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "158-158-48-248",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "99-129-219-9",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "205-145-105-5",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "14-54-234-64",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "APERTURA MANUAL",
+                "vt": "str"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 8,
+        "x": 380,
+        "y": 180,
+        "wires": [
+            [
+                "c3f0b736.4a8778"
+            ],
+            [
+                "c3f0b736.4a8778"
+            ],
+            [
+                "c3f0b736.4a8778"
+            ],
+            [
+                "c3f0b736.4a8778"
+            ],
+            [
+                "c3f0b736.4a8778"
+            ],
+            [
+                "c3f0b736.4a8778"
+            ],
+            [
+                "c3f0b736.4a8778"
+            ],
+            [
+                "8dc7139f.2c0c3"
+            ]
+        ]
+    },
+    {
+        "id": "8dc7139f.2c0c3",
+        "type": "debug",
+        "z": "97ebf287.c978e",
+        "name": "Acceso Denegado",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "x": 670,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "c3f0b736.4a8778",
+        "type": "change",
+        "z": "97ebf287.c978e",
+        "name": "Acceso NFC Usuario",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "108-18-101-3",
+                "fromt": "str",
+                "to": "Irene E/S",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "150-156-49-249",
+                "fromt": "str",
+                "to": "Oscar E/S",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "92-127-211-3",
+                "fromt": "str",
+                "to": "Alex E/S",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "16-31-183-195",
+                "fromt": "str",
+                "to": "Olivia E/S",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "15-50-233-67",
+                "fromt": "str",
+                "to": "Oscar E/S",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "204-149-106-3",
+                "fromt": "str",
+                "to": "Raquel E/S",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "APERTURA MANUAL",
+                "fromt": "str",
+                "to": "Alexa E/S",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 680,
+        "y": 180,
+        "wires": [
+            [
+                "929672f2.d68af",
+                "f0e05f83.1981a"
+            ]
+        ]
+    },
+    {
+        "id": "51d26040.79f51",
+        "type": "inject",
+        "z": "97ebf287.c978e",
+        "name": "Apertura Manual",
+        "topic": "",
+        "payload": "1",
+        "payloadType": "str",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "x": 160,
+        "y": 780,
+        "wires": [
+            [
+                "9ad53f59.1eb46"
+            ]
+        ]
+    },
+    {
+        "id": "d9b14e97.4defe",
+        "type": "mqtt out",
+        "z": "97ebf287.c978e",
+        "name": "",
+        "topic": "casa/puerta/control_NFC",
+        "qos": "2",
+        "retain": "",
+        "broker": "",
+        "x": 750,
+        "y": 720,
+        "wires": []
+    },
+    {
+        "id": "43ebdb97.cd7694",
+        "type": "inject",
+        "z": "97ebf287.c978e",
+        "name": "Alta Tarjeta NFC",
+        "topic": "",
+        "payload": "15-50-233-67",
+        "payloadType": "str",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "x": 160,
+        "y": 340,
+        "wires": [
+            [
+                "7638cadc.306984",
+                "58004d85.5d2b24"
+            ]
+        ]
+    },
+    {
+        "id": "58004d85.5d2b24",
+        "type": "mqtt out",
+        "z": "97ebf287.c978e",
+        "name": "",
+        "topic": "casa/puerta/alta_NFC",
+        "qos": "2",
+        "retain": "",
+        "broker": "",
+        "x": 580,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "7638cadc.306984",
+        "type": "debug",
+        "z": "97ebf287.c978e",
+        "name": "Alta Tarjeta NFC",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "x": 360,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "3f379a22.dedd56",
+        "type": "inject",
+        "z": "97ebf287.c978e",
+        "name": "Baja Tarjeta NFC",
+        "topic": "",
+        "payload": "15-50-233-67",
+        "payloadType": "str",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "x": 160,
+        "y": 480,
+        "wires": [
+            [
+                "41a64012.10c28",
+                "beaf0980.bf2ac8"
+            ]
+        ]
+    },
+    {
+        "id": "41a64012.10c28",
+        "type": "mqtt out",
+        "z": "97ebf287.c978e",
+        "name": "",
+        "topic": "casa/puerta/baja_NFC",
+        "qos": "2",
+        "retain": "",
+        "broker": "",
+        "x": 600,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "beaf0980.bf2ac8",
+        "type": "debug",
+        "z": "97ebf287.c978e",
+        "name": "Baja Tarjeta NFC",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "x": 370,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "7c774107.80773",
+        "type": "inject",
+        "z": "97ebf287.c978e",
+        "name": "RESET Manual",
+        "topic": "",
+        "payload": "R",
+        "payloadType": "str",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "x": 160,
+        "y": 740,
+        "wires": [
+            [
+                "75c8f49d.89bfbc"
+            ]
+        ]
+    },
+    {
+        "id": "72d4e760.a6c838",
+        "type": "inject",
+        "z": "97ebf287.c978e",
+        "name": "Tarjetas con Acceso",
+        "topic": "",
+        "payload": "I",
+        "payloadType": "str",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "x": 170,
+        "y": 640,
+        "wires": [
+            [
+                "49c08e8f.7c9eb"
+            ]
+        ]
+    },
+    {
+        "id": "49c08e8f.7c9eb",
+        "type": "ui_button",
+        "z": "97ebf287.c978e",
+        "name": "",
+        "group": "2cb7acd5.8c83d4",
+        "order": 1,
+        "width": "4",
+        "height": "1",
+        "passthru": true,
+        "label": "CARD's con Acceso Debug Puerto Serie",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "green",
+        "icon": "",
+        "payload": "I",
+        "payloadType": "str",
+        "topic": "",
+        "x": 440,
+        "y": 640,
+        "wires": [
+            [
+                "d9b14e97.4defe"
+            ]
+        ]
+    },
+    {
+        "id": "929672f2.d68af",
+        "type": "influxdb out",
+        "z": "97ebf287.c978e",
+        "influxdb": "",
+        "name": "BD Control_Acceso/USER",
+        "measurement": "NFC_USER",
+        "precision": "s",
+        "retentionPolicy": "",
+        "x": 1100,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "384a3482.85712c",
+        "type": "influxdb in",
+        "z": "97ebf287.c978e",
+        "influxdb": "",
+        "name": "Accesos Totales",
+        "query": "select * from NFC_USER",
+        "rawOutput": false,
+        "precision": "s",
+        "retentionPolicy": "",
+        "x": 1180,
+        "y": 220,
+        "wires": [
+            [
+                "15378c3b.3e2224"
+            ]
+        ]
+    },
+    {
+        "id": "9c22729d.38ee9",
+        "type": "ui_template",
+        "z": "97ebf287.c978e",
+        "group": "7984cc41.e30584",
+        "name": "Alta Tarjeta NFC",
+        "order": 1,
+        "width": "6",
+        "height": "2",
+        "format": "<md-input-container  style=\"margin: 19px;\">\n    <span><label style=\"font-size: 30px;\">Alta Tarjeta NFC </label>\n    <input ng-model=\"msg.payload\"  type=\"search\"  ng-change=\"send(msg)\"></span>\n</md-input-container>",
+        "storeOutMessages": false,
+        "fwdInMessages": true,
+        "templateScope": "local",
+        "x": 360,
+        "y": 300,
+        "wires": [
+            [
+                "5483c54c.f032ec",
+                "58004d85.5d2b24"
+            ]
+        ]
+    },
+    {
+        "id": "ddc58cf3.7d6c6",
+        "type": "ui_template",
+        "z": "97ebf287.c978e",
+        "group": "7984cc41.e30584",
+        "name": "Baja Tarjeta NFC",
+        "order": 2,
+        "width": "6",
+        "height": "2",
+        "format": "<md-input-container  style=margin: 19px;\">\n    <span><label style=\"font-size: 25px;\">Baja Tarjeta NFC</label>\n    <input ng-model=\"msg.payload\"  type=\"search\"  ng-change=\"send(msg)\"></span>\n</md-input-container>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "templateScope": "local",
+        "x": 370,
+        "y": 440,
+        "wires": [
+            [
+                "41a64012.10c28"
+            ]
+        ]
+    },
+    {
+        "id": "86b5558f.1e60e8",
+        "type": "influxdb in",
+        "z": "97ebf287.c978e",
+        "influxdb": "",
+        "name": "20 Ultimos Accesos",
+        "query": "select * from NFC_USER order by time DESC limit 20",
+        "rawOutput": false,
+        "precision": "s",
+        "retentionPolicy": "",
+        "x": 1190,
+        "y": 260,
+        "wires": [
+            [
+                "15378c3b.3e2224"
+            ]
+        ]
+    },
+    {
+        "id": "18ec3488.20948b",
+        "type": "comment",
+        "z": "97ebf287.c978e",
+        "name": "Base de Datos y Consultas BD - CONTROL DE ACCESOS",
+        "info": "",
+        "x": 1130,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "2f16b3a.4d98c4c",
+        "type": "ui_button",
+        "z": "97ebf287.c978e",
+        "name": "",
+        "group": "2cb7acd5.8c83d4",
+        "order": 7,
+        "width": "0",
+        "height": "0",
+        "passthru": false,
+        "label": "Ultimos Accesos",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "icon": "",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "",
+        "x": 920,
+        "y": 260,
+        "wires": [
+            [
+                "86b5558f.1e60e8"
+            ]
+        ]
+    },
+    {
+        "id": "428f16b1.e1f8e8",
+        "type": "influxdb in",
+        "z": "97ebf287.c978e",
+        "influxdb": "",
+        "name": "20 Ultimos Accesos Oscar",
+        "query": "select * from NFC_USER where value = 'Oscar E/S' order by time DESC limit 20",
+        "rawOutput": false,
+        "precision": "s",
+        "retentionPolicy": "",
+        "x": 1210,
+        "y": 300,
+        "wires": [
+            [
+                "15378c3b.3e2224"
+            ]
+        ]
+    },
+    {
+        "id": "8a2e5795.15e608",
+        "type": "ui_button",
+        "z": "97ebf287.c978e",
+        "name": "",
+        "group": "2cb7acd5.8c83d4",
+        "order": 8,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Ultimos Accesos Oscar",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "purple",
+        "icon": "",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "",
+        "x": 950,
+        "y": 300,
+        "wires": [
+            [
+                "428f16b1.e1f8e8"
+            ]
+        ]
+    },
+    {
+        "id": "f0917470.7010c8",
+        "type": "ui_button",
+        "z": "97ebf287.c978e",
+        "name": "",
+        "group": "2cb7acd5.8c83d4",
+        "order": 5,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Baja Tarjeta NFC",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "red",
+        "icon": "",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "",
+        "x": 150,
+        "y": 440,
+        "wires": [
+            [
+                "ddc58cf3.7d6c6"
+            ]
+        ]
+    },
+    {
+        "id": "192bcac8.107cb5",
+        "type": "ui_button",
+        "z": "97ebf287.c978e",
+        "name": "",
+        "group": "2cb7acd5.8c83d4",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "label": "Alta Tarjeta NFC",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "green",
+        "icon": "",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "",
+        "x": 140,
+        "y": 300,
+        "wires": [
+            [
+                "9c22729d.38ee9"
+            ]
+        ]
+    },
+    {
+        "id": "4cfd6d4b.4250d4",
+        "type": "influxdb in",
+        "z": "97ebf287.c978e",
+        "influxdb": "",
+        "name": "20 Ultimos Accesos Irene",
+        "query": "select * from NFC_USER where value = 'Irene E/S' order by time DESC limit 20",
+        "rawOutput": false,
+        "precision": "s",
+        "retentionPolicy": "",
+        "x": 1210,
+        "y": 340,
+        "wires": [
+            [
+                "15378c3b.3e2224"
+            ]
+        ]
+    },
+    {
+        "id": "3324cece.b162a2",
+        "type": "ui_button",
+        "z": "97ebf287.c978e",
+        "name": "",
+        "group": "2cb7acd5.8c83d4",
+        "order": 10,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Ultimos Accesos Irene",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "purple",
+        "icon": "",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "",
+        "x": 940,
+        "y": 340,
+        "wires": [
+            [
+                "4cfd6d4b.4250d4"
+            ]
+        ]
+    },
+    {
+        "id": "241b8fc.2e0777",
+        "type": "comment",
+        "z": "97ebf287.c978e",
+        "name": "Acciones de Control - CONTROL DE ACCESOS",
+        "info": "",
+        "x": 420,
+        "y": 580,
+        "wires": []
+    },
+    {
+        "id": "f0e05f83.1981a",
+        "type": "debug",
+        "z": "97ebf287.c978e",
+        "name": "Acceso Concedido",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "x": 670,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "5483c54c.f032ec",
+        "type": "debug",
+        "z": "97ebf287.c978e",
+        "name": "",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "x": 600,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "db90a100.0b3f8",
+        "type": "influxdb in",
+        "z": "97ebf287.c978e",
+        "influxdb": "",
+        "name": "20 Ultimos Accesos Olivia",
+        "query": "select * from NFC_USER where value = 'Olivia E/S' order by time DESC limit 20",
+        "rawOutput": false,
+        "precision": "s",
+        "retentionPolicy": "",
+        "x": 1210,
+        "y": 380,
+        "wires": [
+            [
+                "15378c3b.3e2224"
+            ]
+        ]
+    },
+    {
+        "id": "ba1d466a.62ab78",
+        "type": "ui_button",
+        "z": "97ebf287.c978e",
+        "name": "",
+        "group": "2cb7acd5.8c83d4",
+        "order": 9,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Ultimos Accesos Olivia",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "purple",
+        "icon": "",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "",
+        "x": 940,
+        "y": 380,
+        "wires": [
+            [
+                "db90a100.0b3f8"
+            ]
+        ]
+    },
+    {
+        "id": "b27a6da8.3cfd4",
+        "type": "influxdb in",
+        "z": "97ebf287.c978e",
+        "influxdb": "",
+        "name": "20 Ultimos Accesos Alex",
+        "query": "select * from NFC_USER where value = 'Alex E/S' order by time DESC limit 20",
+        "rawOutput": false,
+        "precision": "s",
+        "retentionPolicy": "",
+        "x": 1210,
+        "y": 420,
+        "wires": [
+            [
+                "15378c3b.3e2224"
+            ]
+        ]
+    },
+    {
+        "id": "ba644964.4c6918",
+        "type": "ui_button",
+        "z": "97ebf287.c978e",
+        "name": "",
+        "group": "2cb7acd5.8c83d4",
+        "order": 11,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Ultimos Accesos Alex",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "purple",
+        "icon": "",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "",
+        "x": 940,
+        "y": 420,
+        "wires": [
+            [
+                "b27a6da8.3cfd4"
+            ]
+        ]
+    },
+    {
+        "id": "15378c3b.3e2224",
+        "type": "ui_table",
+        "z": "97ebf287.c978e",
+        "group": "7984cc41.e30584",
+        "name": "Últimos Accesos",
+        "order": 4,
+        "width": "10",
+        "height": "11",
+        "columns": [
+            {
+                "field": "value",
+                "title": "Persona",
+                "width": "",
+                "align": "center",
+                "formatter": "plaintext",
+                "formatterParams": {
+                    "target": "_blank"
+                }
+            },
+            {
+                "field": "time",
+                "title": "Fecha / Hora",
+                "width": "",
+                "align": "center",
+                "formatter": "plaintext",
+                "formatterParams": {
+                    "target": "_blank"
+                }
+            }
+        ],
+        "outputs": 0,
+        "cts": false,
+        "x": 1500,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "78d815af.9e369c",
+        "type": "wemo-emulator",
+        "z": "97ebf287.c978e",
+        "name": "Puerta Exterior",
+        "friendlyName": "Puerta Exterior",
+        "serial": "Puerta Exterior",
+        "port": "3505",
+        "onTopic": "1",
+        "onPayload": "1",
+        "offTopic": "",
+        "offPayload": "",
+        "x": 140,
+        "y": 680,
+        "wires": [
+            [
+                "df0b5965.eae0d8"
+            ]
+        ]
+    },
+    {
+        "id": "df0b5965.eae0d8",
+        "type": "trigger",
+        "z": "97ebf287.c978e",
+        "op1": "1",
+        "op2": "0",
+        "op1type": "str",
+        "op2type": "str",
+        "duration": "250",
+        "extend": false,
+        "units": "ms",
+        "reset": "",
+        "bytopic": "all",
+        "name": "",
+        "x": 380,
+        "y": 680,
+        "wires": [
+            [
+                "d9b14e97.4defe"
+            ]
+        ]
+    },
+    {
+        "id": "8be48058.e35a1",
+        "type": "influxdb in",
+        "z": "97ebf287.c978e",
+        "influxdb": "",
+        "name": "20 Ultimos Accesos Raquel",
+        "query": "select * from NFC_USER where value = 'Raquel E/S' order by time DESC limit 20",
+        "rawOutput": false,
+        "precision": "s",
+        "retentionPolicy": "",
+        "x": 1220,
+        "y": 460,
+        "wires": [
+            [
+                "15378c3b.3e2224"
+            ]
+        ]
+    },
+    {
+        "id": "5b3a9020.4f8c5",
+        "type": "ui_button",
+        "z": "97ebf287.c978e",
+        "name": "",
+        "group": "2cb7acd5.8c83d4",
+        "order": 12,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Ultimos Accesos Raquel",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "purple",
+        "icon": "",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "",
+        "x": 950,
+        "y": 460,
+        "wires": [
+            [
+                "8be48058.e35a1"
+            ]
+        ]
+    },
+    {
+        "id": "87dbe6e0.a54ca8",
+        "type": "influxdb in",
+        "z": "97ebf287.c978e",
+        "influxdb": "",
+        "name": "20 Ultimos Accesos Alexa",
+        "query": "select * from NFC_USER where value = 'Alexa E/S' order by time DESC limit 20",
+        "rawOutput": false,
+        "precision": "s",
+        "retentionPolicy": "",
+        "x": 1210,
+        "y": 500,
+        "wires": [
+            [
+                "15378c3b.3e2224"
+            ]
+        ]
+    },
+    {
+        "id": "5ecc8688.8a7908",
+        "type": "ui_button",
+        "z": "97ebf287.c978e",
+        "name": "",
+        "group": "2cb7acd5.8c83d4",
+        "order": 13,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Ultimos Accesos Alexa",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "purple",
+        "icon": "",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "",
+        "x": 940,
+        "y": 500,
+        "wires": [
+            [
+                "87dbe6e0.a54ca8"
+            ]
+        ]
+    },
+    {
+        "id": "f1b05451.5d00f8",
+        "type": "ui_button",
+        "z": "97ebf287.c978e",
+        "name": "",
+        "group": "2cb7acd5.8c83d4",
+        "order": 6,
+        "width": "0",
+        "height": "0",
+        "passthru": false,
+        "label": "Todos los Accesos",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "icon": "",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "",
+        "x": 930,
+        "y": 220,
+        "wires": [
+            [
+                "384a3482.85712c"
+            ]
+        ]
+    },
+    {
+        "id": "e337e098.b393b",
+        "type": "mqtt in",
+        "z": "97ebf287.c978e",
+        "name": "",
+        "topic": "casa/puerta/tarjetas_NFC",
+        "qos": "0",
+        "datatype": "auto",
+        "broker": "",
+        "x": 750,
+        "y": 640,
+        "wires": [
+            [
+                "28501076.870b7"
+            ]
+        ]
+    },
+    {
+        "id": "28501076.870b7",
+        "type": "debug",
+        "z": "97ebf287.c978e",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "x": 970,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "2cb7acd5.8c83d4",
+        "type": "ui_group",
+        "z": "",
+        "name": "Controles",
+        "tab": "820b0f5b.53576",
+        "order": 1,
+        "disp": true,
+        "width": "4",
+        "collapse": true
+    },
+    {
+        "id": "7984cc41.e30584",
+        "type": "ui_group",
+        "z": "",
+        "name": "Puerta Acceso Exterior",
+        "tab": "820b0f5b.53576",
+        "order": 2,
+        "disp": true,
+        "width": "20",
+        "collapse": true
+    },
+    {
+        "id": "820b0f5b.53576",
+        "type": "ui_tab",
+        "z": "",
+        "name": "Control Home",
+        "icon": "dashboard",
+        "order": 1,
+        "disabled": false,
+        "hidden": false
+    }
+]

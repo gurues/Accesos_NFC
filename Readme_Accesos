@@ -28,9 +28,13 @@
  *
  *      sendCommandCheckAck(pn532_packetbuffer, 3, 250U); // 250 ms tiempo de bloqueo lector NFC
  *
- *  Mediante la modificación de los archivos configuracion.h y credenciales se puede ajustar este proyecto a 
+ *  Mediante la modificación de los archivos configuracion.h y credenciales.h se puede ajustar este proyecto a 
  *  otros escenarios.
-
+ *
+ *  Descomentando #define DEBUG_ACCESO en el archivo configuracion.h se permite el DEBUG por el puerto serie
+ *
+ *  En el arcivo Flow_nodered está la programación de flujos en nodered
+ *
  *  ------------------------------------------------------------------------------------------------------------
  *
  *  Hardware necesario:

@@ -4,21 +4,16 @@ Credenciales WIFI y BROKER MQTT
 
 #pragma once
 
-// Credenciales WIFI tita
-//const char *ssid = "MOVISTAR_D752";
-//const char *password = "KckxpKRFbjCuU7TUTfuR";
+// Credenciales WIFI
+const char *ssid = "xxxxxxxxxxxxxxxxxxxx";
+const char *password = "xxxxxxxxxxxxxxxxxxxxxx";
 
-// Credenciales WIFI Casa
-const char *ssid = "MOVISTAR_9E06";
-const char *password = "1CD0FD833D86C2705DD2";
-
-IPAddress ip(192, 168, 1, 57);
-IPAddress gateway(192,168,1,1);
+IPAddress ip(xxx, xx, x, xxx);  // Modificar platformio.ini si se cambia la ip
+IPAddress gateway(xxx,xxx,x,x);
 IPAddress subnet (255,255,255,0);
 
-// Credenciales MQTT http://192.168.99.100 BROKER DOCKER
-// Credenciales MQTT http://192.168.1.99  BROKER RPI
-#define MQTT_HOST IPAddress(192, 168, 1, 99)
+// Credenciales MQTT PI
+#define MQTT_HOST IPAddress(xxx, xxx, x, xxx)
 #define MQTT_PORT 1883
 
 // TOPIC MQTT

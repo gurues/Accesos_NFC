@@ -20,7 +20,7 @@ Configuración del Lector/REgistro tarjetas NFC
 
 // Configuración tarjetas NFC --> idPermitido[0,1,2,3,4,5,6,7,8,9,10], la pos 10 para borrar
 #define ARRAYSIZE   11    // Nº de tarjetas con acceso, son 10 tarjetas y la posición 11 = "" para borrar.
-String idPermitido[ARRAYSIZE]={"108-18-101-3","16-31-183-195","150-156-49-249","92-127-211-3","204-149-106-3","15-50-233-67"}; // Tarjetas con acceso
+String idPermitido[ARRAYSIZE]={"106-16-106-6","17-37-187-197","158-158-48-248","99-129-219-9","205-145-105-5","14-54-234-64"}; // Tarjetas con acceso
 int ARRAYUSE= 6; // Nº de tarjetas actuales con acceso (Puntero usado del array)
 
 //Tiempo actuación apertura cerradura
