@@ -56,7 +56,7 @@ void abrirPuertaManual(){
   digitalWrite (cerradura, Estado_Cerradura);
   if (Estado_Cerradura == LOW){
     open_manual.detach(); // se para el Ticker apertura manual
-    mqttClient.publish(topicAcceso, 0, true, "APERTURA MANUAL"); // Publico uid CARD leida
+    mqttClient.publish(topicAcceso, 0, false, "APERTURA MANUAL"); // Publico uid CARD leida
   }
   Estado_Cerradura = LOW;
 }
@@ -173,7 +173,7 @@ void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties 
           #ifdef DEBUG_ACCESO
             Serial.println(idPermitido[X]);
           #endif
-          mqttClient.publish(topicTarjetas, 0, true, (idPermitido[X]).c_str()); // Publico tarjetas con permiso
+          mqttClient.publish(topicTarjetas, 0, false, (idPermitido[X]).c_str()); // Publico tarjetas con permiso
         }
         #ifdef DEBUG_ACCESO
           Serial.print("ARRAYSIZE= ");
@@ -391,7 +391,7 @@ void loop () {
         }
       #endif
       // MQTT se publica el acceso
-      mqttClient.publish(topicAcceso, 0, true, ((uid).c_str())); // Publico uid CARD leida
+      mqttClient.publish(topicAcceso, 0, false, ((uid).c_str())); // Publico uid CARD leida
     }
     digitalWrite ( led, HIGH ); // Fin presencia tarjeta 
     NFC_Present = false; // Reiniciovariable gestión interrupción
