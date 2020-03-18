@@ -5,7 +5,7 @@ Configuración del Lector/REgistro tarjetas NFC
 #pragma once
 
 // Descomentar para mostrar debug monitor serie
-#define DEBUG_ACCESO
+//#define DEBUG_ACCESO
 
 // Pines SPI LECTOR NFC
 #define SCK   D0
@@ -20,8 +20,12 @@ Configuración del Lector/REgistro tarjetas NFC
 
 // Configuración tarjetas NFC --> idPermitido[0,1,2,3,4,5,6,7,8,9,10], la pos 10 para borrar
 #define ARRAYSIZE   11    // Nº de tarjetas con acceso, son 10 tarjetas y la posición 11 = "" para borrar.
-String idPermitido[ARRAYSIZE]={"108-18-101-3","16-31-183-195","150-156-49-249","92-127-211-3","204-149-106-3","15-50-233-67"}; // Tarjetas con acceso
-int ARRAYUSE= 6; // Nº de tarjetas actuales con acceso (Puntero usado del array)
+String idPermitido[ARRAYSIZE]={"108-18-101-3","16-31-183-195","150-156-49-249","92-127-211-3","204-149-106-3","15-50-233-67","73-142-122-200"}; // Tarjetas con acceso
+int ARRAYUSE= 7; // Nº de tarjetas actuales con acceso (Puntero usado del array)
 
 //Tiempo actuación apertura cerradura
 const int msApertura = 500;         // 0,5 seg de apertura de la cerradura
+
+//Tiempo de lectura entre Card's
+unsigned long time_Nfc;
+unsigned long timeEntreCards = 3000;// 3 seg

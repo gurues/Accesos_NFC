@@ -36,17 +36,19 @@ volatile bool NFC_Present = false;    // Tarjeta NFC presente (variable interrup
 bool Estado_Cerradura = false;        // Variable global que representa el estado de la cerradura
   
 /////// DEFINICIÓN DE FUNCIONES   /////////////////////////////////////////////
-
+/*
 // Apertura de la cerradura. Esta función será llamada cada vez que se haya concedido el acceso a una tarjeta.
 void abrirPuerta(){   
   #ifdef DEBUG_ACCESO
     Serial.println("abrirPuerta_UID_Card ............");
   #endif
+  digitalWrite (led, HIGH);
   digitalWrite (cerradura, HIGH);
   delay(msApertura);
+  digitalWrite (led, LOW);
   digitalWrite (cerradura, LOW);
 }
-
+*/
 // Apertura de la cerradura. Esta función será llamada cada vez que se abra la puerta de forma manual
 // a través del nodered
 void abrirPuertaManual(){   
@@ -332,6 +334,8 @@ void setup() {
   ArduinoOTA.begin();
 
   //Activo interrupciones lector NFC
+  nfc.startPassiveTargetIDDetection(PN532_MIFARE_ISO14443A);
+  delay(500);
   attachInterrupt(digitalPinToInterrupt(RQ), IRQ_ISR, FALLING);
   
 #ifdef DEBUG_ACCESO 
@@ -357,24 +361,26 @@ void loop () {
   uint8_t uidLength;                          // Length of the UID (4 (Mifare Classic) or 7 (Mifare Ultralight) 
                                               // bytes depending on ISO14443A card type)
   
+  // Evaluación de la tarjeta leida
   if(NFC_Present == true) { 
     noInterrupts(); // desactivo interrupciones
-    puerta = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, &N_uid[0], &uidLength);
+    puerta = nfc.readDetectedPassiveTargetID(&N_uid[0], &uidLength);
     if (puerta){
       digitalWrite ( led, LOW ); // Detectada tarjeta
+      time_Nfc = millis();
       #ifdef DEBUG_ACCESO
         Serial.print("Encontrada ISO14443A card UID: ");
         Serial.println(PrintHex(N_uid,uidLength));
         bool noEncontrado = true;
       #endif
-      // espera hasta que se quite la tarjeta
-      while (nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, &N_uid[0], &uidLength)) {}
       uid = PrintHex(N_uid,uidLength);
       //Comprueba si card UID tiene acceso
       for(int i = 0; i < ARRAYUSE; i++){
         if(uid == idPermitido[i]){
-          abrirPuerta();
+          digitalWrite (cerradura, HIGH); // Abrimos puerta, tarjeta con acceso
+          Estado_Cerradura = true; 
           #ifdef DEBUG_ACCESO
+            Serial.println("Bobina Puerta ON ............");
             noEncontrado = false;
           #endif
           break;
@@ -390,14 +396,29 @@ void loop () {
           Serial.println(uid);
         }
       #endif
-      // MQTT se publica el acceso
+      // MQTT se publica la UID de la tarjeta leida
       mqttClient.publish(topicAcceso, 0, false, ((uid).c_str())); // Publico uid CARD leida
     }
-    digitalWrite ( led, HIGH ); // Fin presencia tarjeta 
-    NFC_Present = false; // Reiniciovariable gestión interrupción
-    interrupts(); // Activo interrupciones
+    else {
+      // Tiempo con Bobina Apertura Puerta ON
+      if ((abs(millis() - time_Nfc) > msApertura) && (Estado_Cerradura)){ 
+        #ifdef DEBUG_ACCESO
+          Serial.println("Bobina Puerta OFF ............");
+        #endif
+        Estado_Cerradura = false; 
+        digitalWrite (cerradura, LOW);
+      }
+      //Activación de interrupciones y permisos para nueva lectura de Tarjeta
+      if ((abs(millis() - time_Nfc) > timeEntreCards)&&(NFC_Present)){
+        time_Nfc = millis();
+        digitalWrite ( led, HIGH ); // Fin lectura tarjeta 
+        Estado_Cerradura = false; 
+        digitalWrite (cerradura, LOW);
+        NFC_Present = false;
+        nfc.startPassiveTargetIDDetection(PN532_MIFARE_ISO14443A); // Activación lectura tarjeta
+        interrupts(); // Activo interrupciones
+      }
+    }
   }
-  
-  nfc.enableRead(PN532_MIFARE_ISO14443A, N_uid, &uidLength);
-    
+
 }
