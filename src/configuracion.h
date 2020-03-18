@@ -5,7 +5,7 @@ Configuración del Lector/REgistro tarjetas NFC
 #pragma once
 
 // Descomentar para mostrar debug monitor serie
-#define DEBUG_ACCESO
+//#define DEBUG_ACCESO
 
 // Pines SPI LECTOR NFC
 #define SCK   D0
@@ -25,3 +25,7 @@ int ARRAYUSE= 6; // Nº de tarjetas actuales con acceso (Puntero usado del array
 
 //Tiempo actuación apertura cerradura
 const int msApertura = 500;         // 0,5 seg de apertura de la cerradura
+
+//Tiempo de lectura entre Card's
+unsigned long time_Nfc;
+unsigned long timeEntreCards = 3000;// 3 seg
